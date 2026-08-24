@@ -1,9 +1,21 @@
 /**
- * Future Supabase entity map.
+ * OneTime Menu database notes.
  *
- * Prototype data currently lives in LocalStorage, but the UI is organized around
- * records that can later map cleanly to Supabase tables and realtime channels.
+ * MVP: Supabase stores the complete AppData object in one JSONB row in
+ * `public.one_time_menu_state`. This intentionally mirrors LocalStorage and
+ * keeps the first backend integration extremely small.
+ *
+ * Later: the product can normalize the same UI data into the relational
+ * entities documented below when multi-location permissions, reporting,
+ * auditing, and larger restaurant groups require it.
  */
+
+export type MvpMenuStateRow = {
+  id: string;
+  data: unknown;
+  updated_at: string;
+};
+
 export type FutureDatabaseEntities = {
   organizations: {
     id: string;

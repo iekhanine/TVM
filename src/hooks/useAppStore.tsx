@@ -15,6 +15,7 @@ import type {
   RestaurantSettings,
   Special,
 } from '../types/menu';
+import { loadRemoteData, saveRemoteData, subscribeToRemoteData } from '../services/appData';
 import { loadData, resetData, saveData, STORAGE_KEY } from '../utils/storage';
 
 type Store = {
@@ -50,21 +51,41 @@ function withActivity(data: AppData, message: string): AppData {
 export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<AppData>(() => loadData());
 
+  const applyRemoteData = useCallback((next: AppData) => {
+    saveData(next);
+    setData(next);
+  }, []);
+
   const commit = useCallback((updater: (current: AppData) => AppData) => {
     setData((current) => {
       const next = updater(current);
       saveData(next);
+      void saveRemoteData(next);
       return next;
     });
   }, []);
 
   useEffect(() => {
-    const sync = () => setData(loadData());
-    window.addEventListener('storage', sync);
+    let active = true;
+    const cached = loadData();
+
+    void loadRemoteData(cached).then((remote) => {
+      if (active && remote) applyRemoteData(remote);
+    });
+
+    const unsubscribeRemote = subscribeToRemoteData((remote) => {
+      if (active) applyRemoteData(remote);
+    });
+
+    const syncLocalTabs = () => setData(loadData());
+    window.addEventListener('storage', syncLocalTabs);
+
     return () => {
-      window.removeEventListener('storage', sync);
+      active = false;
+      unsubscribeRemote();
+      window.removeEventListener('storage', syncLocalTabs);
     };
-  }, []);
+  }, [applyRemoteData]);
 
   const store = useMemo<Store>(() => ({
     data,
@@ -99,6 +120,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       const next = resetData();
       setData(next);
       saveData(next);
+      void saveRemoteData(next);
     },
   }), [commit, data]);
 

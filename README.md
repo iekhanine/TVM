@@ -4,26 +4,23 @@
 
 > Digital menus. Any screen. No proprietary hardware.
 
-The core product idea is intentionally simple: if a television or display can open a modern web browser, it can run OneTime Menu. A restaurant can open a dedicated display URL in Chrome, Edge, Firefox, Safari, or another modern browser, put the browser into fullscreen mode, and use that screen as a digital menu board.
+If a television or display can open a modern web browser, it can run OneTime Menu. Open a dedicated display URL in Chrome, Edge, Firefox, Safari, or another modern browser and place it into fullscreen mode.
 
-This repository is a working front-end MVP. It includes a product landing page, a restaurant administration dashboard, two display routes, realistic demo content, scheduling, specials, appearance controls, and cross-tab updates using browser storage events.
+This version supports both **LocalStorage** and an intentionally simple **Supabase backend**. LocalStorage remains the display cache; Supabase provides cross-device persistence and Realtime updates.
 
 ## Requirements
 
-- Node.js 20.19 or newer recommended
-- npm 10 or newer recommended
+- Node.js 20.19 or newer
+- npm
 - A modern browser
+- Optional: a Supabase project for cross-device sync
 
-No backend, paid API, proprietary player, or external service is required for this prototype.
-
-## Install and run locally
+## Install
 
 ```bash
 npm install
 npm run dev
 ```
-
-Vite will print the local URL, normally `http://localhost:5173`.
 
 ## Production build
 
@@ -31,111 +28,190 @@ Vite will print the local URL, normally `http://localhost:5173`.
 npm run build
 ```
 
-The production files are written to `dist/`.
-
-To preview the production build locally:
-
-```bash
-npm run preview
-```
-
 ## Routes
 
 | Route | Purpose |
 | --- | --- |
-| `/` | OneTime Menu marketing and product landing page |
-| `/admin` | The Copper Fork restaurant admin dashboard |
-| `/display/main` | Fullscreen main counter menu display |
-| `/display/bar` | Fullscreen secondary bar menu display |
+| `/` | Product landing page |
+| `/admin` | Restaurant admin dashboard |
+| `/display/main` | Fullscreen main counter menu |
+| `/display/bar` | Fullscreen secondary bar menu |
 
-## Demo walkthrough
+# Supabase setup - simplest MVP configuration
 
-A useful demo sequence is:
+The MVP deliberately uses **one table** instead of immediately creating a large relational schema.
 
-1. Open `/admin`.
-2. Choose **Menu Items**.
-3. Edit **The Copper Burger** and change its price.
-4. Edit another item and mark it **SOLD OUT**.
-5. Open `/display/main` in another browser tab.
-6. Return to the admin tab and change another menu item. The display tab updates through LocalStorage browser events without a manual reload.
-7. Choose **Appearance** and switch between **Modern Dark** and **Bright Casual**.
-8. Choose **Specials** and create a promotion with an active date/time range.
-9. Choose **Screens** and preview `/display/bar`.
-10. Choose **Scheduling** and use the manual daypart override or return it to Automatic.
+Each restaurant/menu installation is stored as one JSONB state row:
 
-## Prototype functionality
+```text
+one_time_menu_state
+  id          text primary key
+  data        jsonb
+  updated_at  timestamptz
+```
 
-### Admin dashboard
+This maps directly to the app's existing `AppData` object and makes backend setup almost plug-and-play.
 
-The admin prototype includes:
+## 1. Create a Supabase project
 
-- Dashboard summary cards
-- Recent activity
-- Menu collection overview
-- Menu item search and category filtering
-- Add, edit, and delete menu items
-- Enable/disable items
-- SOLD OUT status
-- Featured, spicy, and vegetarian flags
-- Price and description editing
-- Screen management and display URL copying
-- Simulated screen refresh state
-- Breakfast, lunch, dinner, and late-night scheduling
-- Browser-time-based automatic daypart selection
-- Manual daypart override
-- Daily specials, happy hour, limited-time items, and event promotions
-- Dark and bright display templates
-- Background and accent color controls
-- Font scaling
-- Description, category header, logo, and specials visibility controls
-- Two, three, or four display columns
-- Editable restaurant settings
-- Demo reset control
+Create a normal Supabase project. No special configuration is required before running the SQL below.
 
-### Display behavior
+## 2. Run the SQL file
 
-The display routes are designed for televisions and digital signage:
+Open **Supabase -> SQL Editor** and run:
 
-- No application navigation or admin controls
-- Full viewport rendering
-- No scrollbars
-- Responsive typography
-- High contrast
-- 1920x1080 and 4K-friendly layout
-- Current menu period from the browser clock
-- Manual schedule override support
-- SOLD OUT indication
-- Special promotion banner
-- Cached LocalStorage data
-- Safe fallback if a display configuration is missing
-- Live reaction to LocalStorage changes made in other tabs
-- Automatic reaction to browser resizing
+```text
+supabase/001_one_time_menu.sql
+```
 
-For a Windows-based display, open a display route and press **F11** to put the browser into fullscreen mode.
+The SQL file:
+
+- Creates `public.one_time_menu_state`
+- Enables Row Level Security
+- Adds prototype public read/write policies
+- Grants browser access through the publishable key
+- Adds the table to Supabase Realtime
+
+## 3. Install dependencies
+
+```bash
+npm install
+```
+
+`@supabase/supabase-js` is already included in `package.json`.
+
+## 4. Create `.env.local`
+
+Copy `.env.example` to `.env.local`:
+
+```env
+VITE_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_YOUR_KEY
+VITE_MENU_INSTANCE_ID=copper-fork
+```
+
+Get the URL and publishable key from the Supabase project dashboard.
+
+Do **not** place a Supabase secret/service-role key in this browser application.
+
+## 5. Start the app
+
+```bash
+npm run dev
+```
+
+That is the entire backend setup.
+
+The first browser to connect checks for a row matching `VITE_MENU_INSTANCE_ID`. If it does not exist, the app seeds that row with the current cached/demo data automatically.
+
+## Multiple restaurant instances
+
+The same codebase can point at another restaurant simply by changing:
+
+```env
+VITE_MENU_INSTANCE_ID=another-restaurant
+```
+
+For the MVP this creates another independent JSONB state row in the same Supabase project.
+
+Example:
+
+```text
+copper-fork
+coffee-house-demo
+northside-bar
+location-002
+```
+
+## How synchronization works
+
+The data flow is:
+
+```text
+Admin change
+    |
+    +--> LocalStorage cache immediately
+    |
+    +--> Supabase one_time_menu_state
+                    |
+                    +--> Supabase Realtime
+                              |
+                              +--> /display/main
+                              +--> /display/bar
+```
+
+Admin updates are written locally first so the interface remains responsive. The same state is then upserted to Supabase.
+
+Displays subscribe to Postgres changes for their configured `VITE_MENU_INSTANCE_ID`. When the Supabase row changes, the new menu state is applied without a browser reload and is cached locally.
+
+If Supabase is temporarily unavailable, the last LocalStorage copy continues rendering.
+
+## Running without Supabase
+
+Supabase remains optional for local development.
+
+If these variables are absent:
+
+```text
+VITE_SUPABASE_URL
+VITE_SUPABASE_PUBLISHABLE_KEY
+```
+
+the application falls back automatically to its original LocalStorage-only behavior.
+
+## Important prototype security note
+
+The SQL migration intentionally permits anonymous browser writes because `/admin` has no authentication in this MVP.
+
+That means this configuration is appropriate for **development, demonstrations, and prototyping**, but not the final public production system.
+
+Before deploying real restaurant customers, the next security milestone should be:
+
+1. Supabase Auth on `/admin`
+2. Anonymous/public display reads
+3. Authenticated-only admin writes
+4. Per-restaurant Row Level Security
+
+The display hardware concept does not change.
+
+## Key backend files
+
+```text
+.env.example
+supabase/001_one_time_menu.sql
+src/lib/supabase.ts
+src/services/appData.ts
+src/hooks/useAppStore.tsx
+src/utils/storage.ts
+src/types/database.ts
+```
+
+### `src/lib/supabase.ts`
+
+Creates the Supabase client using Vite environment variables. If no credentials exist, it returns to LocalStorage-only mode.
+
+### `src/services/appData.ts`
+
+Contains the entire MVP Supabase data layer:
+
+- Load restaurant state
+- Auto-seed missing restaurant state
+- Save restaurant state
+- Subscribe to Realtime changes
+
+### `src/hooks/useAppStore.tsx`
+
+The existing React store remains the single UI interface. Components do not need to know whether data came from LocalStorage or Supabase.
 
 ## LocalStorage persistence
 
-Prototype state is stored under this key:
+The cache key is:
 
 ```text
 onetime-menu-demo-v1
 ```
 
-The shared store is implemented in:
-
-```text
-src/hooks/useAppStore.tsx
-```
-
-The persistence helpers are in:
-
-```text
-src/utils/storage.ts
-```
-
-The application listens for the browser `storage` event so that changes made in one tab are loaded by display pages running in another tab. Components within the admin use the same React store, while separate tabs synchronize through the browser's native `storage` event.
-
-This is a prototype substitute for production realtime messaging.
+LocalStorage is intentionally retained after adding Supabase. For signage, this provides a useful fallback if a display temporarily loses internet access.
 
 ## Reset demo data
 
@@ -145,41 +221,28 @@ Open:
 /admin
 ```
 
-Then choose:
+Then choose **Restaurant Settings -> Reset LocalStorage Demo**.
 
-```text
-Restaurant Settings -> Reset LocalStorage Demo
-```
-
-You can also remove the `onetime-menu-demo-v1` LocalStorage key using browser developer tools and reload the page.
+When Supabase is configured, reset also writes the demo state back to the configured Supabase menu instance.
 
 ## Project structure
 
 ```text
 src/
   admin/
-    AdminPage.tsx
-    AppearanceSection.tsx
-    DashboardSection.tsx
-    MenuItemsSection.tsx
-    MenusSection.tsx
-    SchedulingSection.tsx
-    ScreensSection.tsx
-    SettingsSection.tsx
-    SpecialsSection.tsx
   components/
-    BrandMark.tsx
-    Modal.tsx
-    StatCard.tsx
-    Toggle.tsx
   data/
     demo.ts
   display/
     DisplayPage.tsx
   hooks/
     useAppStore.tsx
+  lib/
+    supabase.ts
   pages/
     LandingPage.tsx
+  services/
+    appData.ts
   types/
     database.ts
     menu.ts
@@ -189,69 +252,29 @@ src/
   App.tsx
   main.tsx
   styles.css
+supabase/
+  001_one_time_menu.sql
+.env.example
 ```
 
-The UI is intentionally split by responsibility instead of being placed into one large `App.tsx` file.
+## Future normalized database
 
-## Demo data model
+`src/types/database.ts` still documents the likely later relational entities:
 
-The primary menu item type is defined in `src/types/menu.ts` and follows this structure:
+- organizations
+- restaurants
+- locations
+- menus
+- categories
+- menu_items
+- screens
+- schedules
+- specials
+- users
 
-```ts
-{
-  id: string
-  name: string
-  description: string
-  price: number
-  category: string
-  enabled: boolean
-  soldOut: boolean
-  featured: boolean
-  vegetarian: boolean
-  spicy: boolean
-  image?: string
-}
-```
+We are intentionally **not** using all those tables yet. The JSONB state table gives the MVP remote persistence and Realtime behavior with dramatically less code and setup.
 
-The same file also defines restaurant settings, schedules, specials, screens, appearance settings, and activity records.
-
-## Future Supabase architecture
-
-`src/types/database.ts` documents a likely future relational model with these entities:
-
-- `organizations`
-- `restaurants`
-- `locations`
-- `menus`
-- `categories`
-- `menu_items`
-- `screens`
-- `schedules`
-- `specials`
-- `users`
-
-A production Supabase migration can replace the LocalStorage store without requiring a major redesign of the UI.
-
-A practical production path would be:
-
-1. Add Supabase Auth for restaurant staff using Google OAuth and email/password.
-2. Add organization, restaurant, location, and role membership tables.
-3. Move menu data into Postgres with Row Level Security.
-4. Give every display a stable screen slug or device token.
-5. Subscribe display clients to Supabase Realtime changes for their location/menu.
-6. Cache the last successful menu payload in LocalStorage or IndexedDB so signage continues displaying during brief internet interruptions.
-7. Add an online heartbeat and last-seen timestamp for screen monitoring.
-8. Add server-side schedule evaluation or keep timezone-aware client evaluation with a configured location timezone.
-9. Add asset storage for logos and optional food images.
-10. Add a lightweight kiosk/PWA mode for devices that support installed web apps while retaining normal browser URLs as the baseline deployment method.
-
-The production architecture should preserve the main product principle: the browser is the player. Proprietary display hardware should remain optional, not mandatory.
-
-## Authentication
-
-Authentication is intentionally not implemented in this MVP. `/admin` loads directly so the restaurant workflow can be demonstrated without setup friction.
-
-The app structure keeps authentication concerns separate from menu data so a future protected route wrapper can be added around `/admin` without modifying the public display routes.
+Normalize only when the product actually needs stronger multi-user access control, reporting, history, large chains, or granular database queries.
 
 ## Technology
 
@@ -260,11 +283,7 @@ The app structure keeps authentication concerns separate from menu data so a fut
 - Vite
 - React Router
 - Lucide React
-- CSS
-- Browser LocalStorage
-
-## OneTime Labs
-
-OneTime Menu is a OneTime Labs prototype built around a buy-once, avoid-unnecessary-lock-in philosophy.
-
-**Product principle:** The restaurant should not have to buy special TVs. If a screen can run a modern browser, it can run OneTime Menu.
+- Supabase JS
+- Supabase Postgres
+- Supabase Realtime
+- LocalStorage fallback cache
