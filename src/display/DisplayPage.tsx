@@ -2,9 +2,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Flame, Leaf, Star } from 'lucide-react';
 import { useAppStore } from '../hooks/useAppStore';
 import type { MenuItem } from '../types/menu';
-import { currentPeriod } from '../utils/time';
-
-const barCategories = ['Appetizers', 'Burgers', 'Desserts', 'Drinks'];
+import { currentSchedule } from '../utils/time';
 
 function money(value: number, currency: string) {
   try {
@@ -24,11 +22,19 @@ export default function DisplayPage({ screenId }: { screenId: string }) {
   }, []);
 
   const screen = data.screens.find((entry) => entry.id === screenId);
-  const period = currentPeriod(data.schedules, data.manualPeriodOverride, now);
+  const activeSchedule = currentSchedule(data.schedules, now);
+
+  const effectiveMenuId = screen
+    ? (screen.useSchedule
+        ? (data.manualMenuOverride || activeSchedule?.menuId || screen.assignedMenuId)
+        : screen.assignedMenuId)
+    : '';
+
+  const menu = data.menus.find((entry) => entry.id === effectiveMenuId) ?? data.menus.find((entry) => entry.id === screen?.assignedMenuId) ?? data.menus[0];
   const isBar = screenId === 'screen-bar';
 
-  const visibleItems = useMemo(() => data.menuItems.filter((item) => item.enabled && (!isBar || barCategories.includes(item.category))), [data.menuItems, isBar]);
-  const visibleCategories = useMemo(() => data.categories.filter((category) => visibleItems.some((item) => item.category === category)), [data.categories, visibleItems]);
+  const visibleItems = useMemo(() => data.menuItems.filter((item) => item.menuId === menu?.id && item.enabled), [data.menuItems, menu?.id]);
+  const visibleCategories = useMemo(() => (menu?.categories ?? []).filter((category) => visibleItems.some((item) => item.category === category)), [menu?.categories, visibleItems]);
   const grouped = useMemo(() => visibleCategories.map((category) => ({ category, items: visibleItems.filter((item) => item.category === category) })), [visibleCategories, visibleItems]);
   const displayColumns = Math.max(2, Math.min(4, data.appearance.columns));
   const columnGroups = useMemo(() => {
@@ -36,6 +42,7 @@ export default function DisplayPage({ screenId }: { screenId: string }) {
     grouped.forEach((group, index) => columns[index % displayColumns].push(group));
     return columns;
   }, [displayColumns, grouped]);
+
   const activeSpecials = useMemo(() => data.specials.filter((special) => {
     if (!special.enabled) return false;
     const start = new Date(special.start).getTime();
@@ -44,6 +51,10 @@ export default function DisplayPage({ screenId }: { screenId: string }) {
     return (Number.isNaN(start) || current >= start) && (Number.isNaN(end) || current <= end);
   }), [data.specials, now]);
   const special = activeSpecials[0];
+
+  const displayLabel = screen?.useSchedule
+    ? (data.manualMenuOverride ? `MANUAL • ${menu?.name ?? 'MENU'}` : `${activeSchedule?.name ?? 'ALL DAY'} • ${menu?.name ?? 'MENU'}`)
+    : (menu?.name ?? 'MENU');
 
   const style = {
     '--menu-accent': data.appearance.accentColor,
@@ -56,46 +67,44 @@ export default function DisplayPage({ screenId }: { screenId: string }) {
     return <main className="display-fallback"><strong>OneTime Menu</strong><h1>Display not configured</h1><p>This screen route does not have a matching configuration.</p></main>;
   }
 
+  if (!menu) {
+    return <main className="display-fallback"><strong>OneTime Menu</strong><h1>No menu assigned</h1><p>Assign a menu to this screen in the admin dashboard.</p></main>;
+  }
+
   return (
     <main className={`menu-display menu-display--${data.appearance.theme} ${isBar ? 'menu-display--bar' : ''}`} style={style}>
       <header className="menu-display__header">
         <div className="menu-display__brand">
           {data.appearance.showLogo && <div className="display-logo">{data.restaurant.logoText || 'CF'}</div>}
-          <div><span className="display-kicker">{isBar ? 'BAR & LATE NIGHT' : 'KITCHEN • BAR • GOOD COMPANY'}</span><h1>{data.restaurant.name}</h1></div>
+          <div><span className="display-kicker">{isBar ? 'BAR • DRINKS • GOOD COMPANY' : 'KITCHEN • BAR • GOOD COMPANY'}</span><h1>{data.restaurant.name}</h1></div>
         </div>
-        <div className="menu-display__period"><span>{period}</span><small>{now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</small></div>
+        <div className="menu-display__period"><span>{displayLabel}</span><small>{now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</small></div>
       </header>
 
       {data.appearance.showSpecialsBanner && special && (
-        <section className="display-special">
-          <span>{special.type}</span>
-          <strong>{special.title}</strong>
-          <p>{special.description}</p>
-          {special.price !== undefined && <b>{money(special.price, data.restaurant.currency)}</b>}
-        </section>
+        <section className="display-special"><span>{special.type}</span><strong>{special.title}</strong><p>{special.description}</p>{special.price !== undefined && <b>{money(special.price, data.restaurant.currency)}</b>}</section>
       )}
 
       <section className="menu-display__content">
-        <div className="menu-display__grid">
-          {columnGroups.map((column, columnIndex) => (
-            <div className="display-column" key={`column-${columnIndex}`}>
-              {column.map(({ category, items }) => (
-                <section className="display-category" key={category}>
-                  {data.appearance.showCategoryHeaders && <div className="display-category__heading"><h2>{category}</h2><span></span></div>}
-                  <div className="display-category__items">
-                    {items.map((item) => <DisplayItem key={item.id} item={item} currency={data.restaurant.currency} showDescription={data.appearance.showDescriptions} />)}
-                  </div>
-                </section>
-              ))}
-            </div>
-          ))}
-        </div>
+        {visibleItems.length === 0 ? (
+          <div className="display-empty-menu"><span>{menu.name}</span><h2>No items are currently enabled.</h2><p>Update this menu from the OneTime Menu admin dashboard.</p></div>
+        ) : (
+          <div className="menu-display__grid">
+            {columnGroups.map((column, columnIndex) => (
+              <div className="display-column" key={`column-${columnIndex}`}>
+                {column.map(({ category, items }) => (
+                  <section className="display-category" key={category}>
+                    {data.appearance.showCategoryHeaders && <div className="display-category__heading"><h2>{category}</h2><span></span></div>}
+                    <div className="display-category__items">{items.map((item) => <DisplayItem key={item.id} item={item} currency={data.restaurant.currency} showDescription={data.appearance.showDescriptions} />)}</div>
+                  </section>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
-      <footer className="menu-display__footer">
-        <div><strong>{data.restaurant.phone}</strong><span>{data.restaurant.address}</span></div>
-        <div className="display-powered"><span>Powered by</span><strong>OneTime Labs</strong></div>
-      </footer>
+      <footer className="menu-display__footer"><div><strong>{data.restaurant.phone}</strong><span>{data.restaurant.address}</span></div><div className="display-powered"><span>Powered by</span><strong>OneTime Labs</strong></div></footer>
     </main>
   );
 }

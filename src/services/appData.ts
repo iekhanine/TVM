@@ -1,19 +1,8 @@
-import { DEMO_DATA } from '../data/demo';
 import { MENU_INSTANCE_ID, supabase } from '../lib/supabase';
 import type { AppData } from '../types/menu';
+import { normalizeAppData } from '../utils/menuData';
 
 const TABLE = 'one_time_menu_state';
-
-function normalizeData(value: unknown): AppData {
-  if (!value || typeof value !== 'object') {
-    return structuredClone(DEMO_DATA);
-  }
-
-  return {
-    ...structuredClone(DEMO_DATA),
-    ...(value as Partial<AppData>),
-  };
-}
 
 export async function loadRemoteData(fallback: AppData): Promise<AppData | null> {
   if (!supabase) return null;
@@ -30,10 +19,10 @@ export async function loadRemoteData(fallback: AppData): Promise<AppData | null>
   }
 
   if (data?.data) {
-    return normalizeData(data.data);
+    return normalizeAppData(data.data);
   }
 
-  const seeded = normalizeData(fallback);
+  const seeded = normalizeAppData(fallback);
   const { error: seedError } = await supabase
     .from(TABLE)
     .upsert({
@@ -82,7 +71,7 @@ export function subscribeToRemoteData(onData: (data: AppData) => void): () => vo
       (payload: { new: unknown }) => {
         const nextRow = payload.new as { data?: unknown } | undefined;
         if (nextRow?.data) {
-          onData(normalizeData(nextRow.data));
+          onData(normalizeAppData(nextRow.data));
         }
       },
     )

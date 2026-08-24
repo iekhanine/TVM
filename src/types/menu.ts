@@ -1,7 +1,16 @@
 export type DisplayTheme = 'dark' | 'bright';
 
+export type MenuDefinition = {
+  id: string;
+  name: string;
+  description: string;
+  categories: string[];
+  enabled: boolean;
+};
+
 export type MenuItem = {
   id: string;
+  menuId: string;
   name: string;
   description: string;
   price: number;
@@ -27,6 +36,7 @@ export type RestaurantSettings = {
 export type MenuSchedule = {
   id: string;
   name: string;
+  menuId: string;
   startTime: string;
   endTime: string;
   days: number[];
@@ -49,7 +59,8 @@ export type Screen = {
   name: string;
   route: string;
   status: 'Online' | 'Offline';
-  assignedMenu: string;
+  assignedMenuId: string;
+  useSchedule: boolean;
   resolution: string;
   lastRefresh: string;
 };
@@ -74,12 +85,12 @@ export type Activity = {
 
 export type AppData = {
   restaurant: RestaurantSettings;
-  categories: string[];
+  menus: MenuDefinition[];
   menuItems: MenuItem[];
   schedules: MenuSchedule[];
   specials: Special[];
   screens: Screen[];
   appearance: AppearanceSettings;
-  manualPeriodOverride: string;
+  manualMenuOverride: string;
   activities: Activity[];
 };

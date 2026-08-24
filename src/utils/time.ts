@@ -5,15 +5,24 @@ const minutes = (value: string) => {
   return hours * 60 + mins;
 };
 
-export function currentPeriod(schedules: MenuSchedule[], manualOverride: string, now = new Date()): string {
-  if (manualOverride) return manualOverride;
+function isWithinSchedule(schedule: MenuSchedule, current: number): boolean {
+  const start = minutes(schedule.startTime);
+  const end = minutes(schedule.endTime);
+  if (end < start) return current >= start || current < end;
+  return current >= start && current < end;
+}
+
+export function currentSchedule(schedules: MenuSchedule[], now = new Date()): MenuSchedule | undefined {
   const day = now.getDay();
   const current = now.getHours() * 60 + now.getMinutes();
-  const candidates = schedules.filter((schedule) => schedule.enabled && schedule.days.includes(day));
-  const lateNight = candidates.find((schedule) => schedule.name === 'Late Night' && current >= minutes(schedule.startTime) && current <= minutes(schedule.endTime));
-  if (lateNight) return lateNight.name;
-  const match = candidates.find((schedule) => current >= minutes(schedule.startTime) && current < minutes(schedule.endTime));
-  return match?.name ?? 'All Day';
+  const candidates = schedules.filter((schedule) => schedule.enabled && schedule.days.includes(day) && isWithinSchedule(schedule, current));
+
+  // When periods overlap, prefer the one that starts latest. This naturally gives Late Night priority.
+  return candidates.sort((a, b) => minutes(b.startTime) - minutes(a.startTime))[0];
+}
+
+export function currentPeriod(schedules: MenuSchedule[], now = new Date()): string {
+  return currentSchedule(schedules, now)?.name ?? 'All Day';
 }
 
 export function formatTime(value: string): string {

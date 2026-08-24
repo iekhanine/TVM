@@ -28,6 +28,15 @@ npm run dev
 npm run build
 ```
 
+## Menu item organization
+
+The Menu Items admin page uses category tabs rather than one long catalog. Fresh demo data starts with Appetizers, Entrees, Sides, and Drinks. Legacy Burgers and Sandwiches categories are automatically migrated into Entrees when existing LocalStorage or Supabase state is loaded. Custom categories are preserved.
+
+
+## Menu Collections
+
+OneTime Menu separates **menus** from **categories**. Demo menus include Main Menu, Breakfast Menu, Bar / Drinks, and Late Night Menu. Each menu owns its own category tabs and items. Screens can either stay assigned to one fixed menu or follow Scheduling, where each daypart maps to a specific menu. Existing pre-menu prototype state is migrated into Main Menu automatically.
+
 ## Routes
 
 | Route | Purpose |

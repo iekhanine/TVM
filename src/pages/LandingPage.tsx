@@ -31,6 +31,7 @@ export default function LandingPage() {
         <nav>
           <a href="#how-it-works">How it works</a>
           <a href="#features">Features</a>
+          <a href="#product-preview">Preview</a>
           <Link to="/admin" className="button button--ghost">Admin Dashboard</Link>
         </nav>
       </header>
@@ -80,6 +81,71 @@ export default function LandingPage() {
             <strong>If it has a modern browser, it can be a menu board.</strong>
             <span>Chrome</span><span>Edge</span><span>Firefox</span><span>Safari</span><span>Embedded WebView</span>
           </div>
+        </section>
+
+        <section id="product-preview" className="section shell product-preview-section">
+          <div className="section-heading section-heading--split">
+            <div>
+              <span className="eyebrow">See the workflow</span>
+              <h2>Manage it in one browser. Display it on another.</h2>
+            </div>
+            <p>OneTime Menu separates restaurant management from the customer-facing display. Update menus from the admin dashboard, then present the live menu fullscreen on any browser-capable screen.</p>
+          </div>
+
+          <div className="product-preview-grid">
+            <article className="product-preview-card">
+              <div className="product-preview-card__top">
+                <span className="product-preview-card__icon"><Monitor size={18} /></span>
+                <div>
+                  <span className="eyebrow">Restaurant controls</span>
+                  <h3>Admin Dashboard</h3>
+                </div>
+              </div>
+              <div className="screenshot-frame screenshot-frame--admin">
+                <div className="screenshot-placeholder">
+                  <Monitor size={34} />
+                  <strong>Admin Dashboard Screenshot</strong>
+                  <span>Menu management, scheduling, screens and specials</span>
+                </div>
+                <img
+                  src="/images/admin-dashboard.png"
+                  alt="OneTime Menu restaurant admin dashboard"
+                  onError={(event) => { event.currentTarget.style.display = 'none'; }}
+                />
+              </div>
+              <div className="product-preview-card__footer">
+                <p>Build menus, update pricing, mark items sold out, create specials, assign displays and schedule dayparts.</p>
+                <Link to="/admin">Open Admin Dashboard <ArrowRight size={15} /></Link>
+              </div>
+            </article>
+
+            <article className="product-preview-card">
+              <div className="product-preview-card__top">
+                <span className="product-preview-card__icon"><Tv size={18} /></span>
+                <div>
+                  <span className="eyebrow">Customer-facing display</span>
+                  <h3>Live Menu Board</h3>
+                </div>
+              </div>
+              <div className="screenshot-frame screenshot-frame--display">
+                <div className="screenshot-placeholder">
+                  <Tv size={34} />
+                  <strong>Main Menu Screenshot</strong>
+                  <span>Fullscreen browser display for the restaurant TV</span>
+                </div>
+                <img
+                  src="/images/main-menu.png"
+                  alt="OneTime Menu fullscreen restaurant menu board"
+                  onError={(event) => { event.currentTarget.style.display = 'none'; }}
+                />
+              </div>
+              <div className="product-preview-card__footer">
+                <p>Designed for clear, high-contrast viewing across a restaurant at 1080p, 4K and responsive screen sizes.</p>
+                <Link to="/display/main">View Live Menu <ExternalLink size={15} /></Link>
+              </div>
+            </article>
+          </div>
+
         </section>
 
         <section id="how-it-works" className="section shell">
