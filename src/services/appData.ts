@@ -56,9 +56,10 @@ export async function saveRemoteData(data: AppData): Promise<void> {
 }
 
 export function subscribeToRemoteData(onData: (data: AppData) => void): () => void {
-  if (!supabase) return () => undefined;
+  const client = supabase;
+  if (!client) return () => undefined;
 
-  const channel = supabase
+  const channel = client
     .channel(`one-time-menu:${MENU_INSTANCE_ID}`)
     .on(
       'postgres_changes',
@@ -78,6 +79,6 @@ export function subscribeToRemoteData(onData: (data: AppData) => void): () => vo
     .subscribe();
 
   return () => {
-    void supabase.removeChannel(channel);
+    void client.removeChannel(channel);
   };
 }

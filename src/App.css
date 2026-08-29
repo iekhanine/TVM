@@ -1,184 +1,991 @@
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
+/* ==========================================================
+   TVM APP CSS
+   Main Television Venue Media module launcher.
+   ========================================================== */
 
-  &:hover {
-    border-color: var(--accent-border);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
+/* ==========================================================
+   CSS 001 - VARIABLES / BASE
+   ========================================================== */
+
+:root {
+  --tvm-bg: #f4f5f7;
+  --tvm-surface: #ffffff;
+  --tvm-surface-soft: #f8f9fa;
+  --tvm-ink: #16181d;
+  --tvm-text: #343842;
+  --tvm-muted: #747a86;
+  --tvm-line: #dfe2e7;
+  --tvm-line-dark: #cfd3da;
+  --tvm-accent: #3c5f78;
+  --tvm-accent-dark: #28475e;
+  --tvm-accent-soft: #e8eff4;
+  --tvm-green: #2f7754;
+  --tvm-green-soft: #e9f4ed;
+  --tvm-amber: #936322;
+  --tvm-amber-soft: #f7f0df;
+  --tvm-gray-soft: #eceef1;
+  --tvm-radius: 10px;
+  --tvm-shadow: 0 12px 30px rgba(24, 30, 39, 0.06);
 }
 
-.hero {
-  position: relative;
-
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
-    margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
+* {
+  box-sizing: border-box;
 }
 
-#center {
+html,
+body,
+#root {
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--tvm-bg);
+  color: var(--tvm-text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+a {
+  font: inherit;
+}
+
+button {
+  border: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ==========================================================
+   CSS 002 - APP SHELL / TOP BAR
+   ========================================================== */
+
+.tvm-app-shell {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: 25px;
-  place-content: center;
+  background:
+    linear-gradient(rgba(22, 24, 29, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22, 24, 29, 0.018) 1px, transparent 1px),
+    var(--tvm-bg);
+  background-size: 28px 28px;
+}
+
+.tvm-topbar {
+  height: 58px;
+  padding: 0 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid var(--tvm-line);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(14px);
+}
+
+.tvm-logo {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tvm-logo__mark {
+  min-width: 43px;
+  height: 30px;
+  padding-inline: 8px;
+  display: grid;
   place-items: center;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
+  border-radius: 6px;
+  background: var(--tvm-ink);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
 }
 
-#next-steps {
+.tvm-logo__text {
+  display: grid;
+  line-height: 1.05;
+}
+
+.tvm-logo__text strong {
+  color: var(--tvm-ink);
+  font-size: 12px;
+  font-weight: 820;
+}
+
+.tvm-logo__text small {
+  margin-top: 4px;
+  color: var(--tvm-muted);
+  font-size: 8px;
+  font-weight: 720;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tvm-topbar__actions {
   display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
-
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
+  align-items: center;
+  gap: 7px;
 }
 
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
+.topbar-button,
+.topbar-icon-button {
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--tvm-line-dark);
+  border-radius: 6px;
+  background: var(--tvm-surface);
+  color: #515762;
+  font-size: 9px;
+  font-weight: 760;
+  cursor: pointer;
+  transition: 0.15s ease;
 }
 
-#next-steps ul {
-  list-style: none;
+.topbar-button {
+  padding: 0 11px;
+}
+
+.topbar-icon-button {
+  width: 32px;
   padding: 0;
+}
+
+.topbar-button:hover,
+.topbar-icon-button:hover {
+  border-color: #aeb4bd;
+  color: var(--tvm-ink);
+}
+
+/* ==========================================================
+   CSS 003 - MAIN / HEADING
+   ========================================================== */
+
+.tvm-main {
+  width: min(1240px, calc(100% - 52px));
+  margin: 0 auto;
+  flex: 1;
+  padding: 44px 0 36px;
+}
+
+.launcher-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 42px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--tvm-line-dark);
+}
+
+.launcher-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--tvm-accent);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.launcher-heading h1 {
+  margin: 9px 0 8px;
+  color: var(--tvm-ink);
+  font-size: clamp(30px, 4vw, 43px);
+  font-weight: 790;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.launcher-heading p {
+  max-width: 720px;
+  margin: 0;
+  color: var(--tvm-muted);
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.platform-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(82px, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--tvm-line-dark);
+  border-radius: 8px;
+  background: var(--tvm-surface);
+}
+
+.platform-summary > div {
+  min-width: 86px;
+  padding: 12px 15px;
+  display: grid;
+  border-right: 1px solid var(--tvm-line);
+}
+
+.platform-summary > div:last-child {
+  border-right: 0;
+}
+
+.platform-summary strong {
+  color: var(--tvm-ink);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.platform-summary span {
+  margin-top: 5px;
+  color: var(--tvm-muted);
+  font-size: 8px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ==========================================================
+   CSS 004 - MODULE SECTION
+   ========================================================== */
+
+.module-section {
+  padding-top: 28px;
+}
+
+.section-label-row {
+  margin-bottom: 13px;
   display: flex;
-  gap: 8px;
-  margin: 32px 0 0;
-
-  .logo {
-    height: 18px;
-  }
-
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
+  align-items: end;
+  justify-content: space-between;
+  gap: 30px;
 }
 
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
+.section-label-row > div {
+  display: grid;
+  gap: 2px;
 }
 
-.ticks {
+.section-label-row span {
+  color: var(--tvm-muted);
+  font-size: 7px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+}
+
+.section-label-row strong {
+  color: var(--tvm-ink);
+  font-size: 15px;
+}
+
+.section-label-row small {
+  color: #8a909a;
+  font-size: 8px;
+}
+
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/* ==========================================================
+   CSS 005 - MODULE TILE
+   ========================================================== */
+
+.module-tile {
+  min-height: 250px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
   position: relative;
+  overflow: hidden;
+  border: 1px solid var(--tvm-line-dark);
+  border-radius: var(--tvm-radius);
+  background: var(--tvm-surface);
+  box-shadow: 0 1px 1px rgba(20, 25, 32, 0.02);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.module-tile:hover {
+  transform: translateY(-2px);
+  border-color: #b6bcc5;
+  box-shadow: var(--tvm-shadow);
+}
+
+.module-tile--planned {
+  background: #f8f9fa;
+}
+
+.module-tile--planned::after {
+  content: "";
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  right: -48px;
+  bottom: -52px;
+  border-radius: 50%;
+  background: rgba(22, 24, 29, 0.025);
+}
+
+.module-tile__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.module-tile__icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--tvm-accent-soft);
+  color: var(--tvm-accent-dark);
+}
+
+.module-tile--development .module-tile__icon {
+  background: var(--tvm-amber-soft);
+  color: var(--tvm-amber);
+}
+
+.module-tile--planned .module-tile__icon {
+  background: var(--tvm-gray-soft);
+  color: #707783;
+}
+
+.module-status {
+  height: 23px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  font-size: 7px;
+  font-weight: 820;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.module-status--active {
+  background: var(--tvm-green-soft);
+  color: var(--tvm-green);
+}
+
+.module-status--development {
+  background: var(--tvm-amber-soft);
+  color: var(--tvm-amber);
+}
+
+.module-status--planned {
+  background: var(--tvm-gray-soft);
+  color: #707783;
+}
+
+.module-tile__body {
+  margin-top: 23px;
+}
+
+.module-tile__category {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--tvm-accent);
+  font-size: 7px;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.module-tile h2 {
+  margin: 0;
+  color: var(--tvm-ink);
+  font-size: 20px;
+  font-weight: 780;
+  letter-spacing: -0.025em;
+}
+
+.module-tile p {
+  margin: 8px 0 0;
+  color: var(--tvm-muted);
+  font-size: 9px;
+  line-height: 1.62;
+}
+
+.module-tile__footer {
+  margin-top: auto;
+  padding-top: 19px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.module-action {
+  min-height: 31px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 6px;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+  transition: 0.15s ease;
+}
+
+.module-action--primary {
+  border: 1px solid var(--tvm-ink);
+  background: var(--tvm-ink);
+  color: #fff;
+}
+
+.module-action--primary:hover {
+  background: #292c32;
+}
+
+.module-action--secondary {
+  border: 1px solid var(--tvm-line-dark);
+  background: var(--tvm-surface);
+  color: #59606a;
+}
+
+.module-action--secondary:hover {
+  border-color: #aab0ba;
+  color: var(--tvm-ink);
+}
+
+.module-action--disabled {
+  padding-left: 0;
+  color: #989da5;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ==========================================================
+   CSS 006 - SHARED PLATFORM BAR
+   ========================================================== */
+
+.foundation-bar {
+  min-height: 62px;
+  margin-top: 18px;
+  padding: 12px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border: 1px solid var(--tvm-line-dark);
+  border-radius: 8px;
+  background: #eef1f4;
+}
+
+.foundation-bar__title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--tvm-accent-dark);
+}
+
+.foundation-bar__title > div {
+  display: grid;
+}
+
+.foundation-bar__title strong {
+  color: var(--tvm-ink);
+  font-size: 10px;
+}
+
+.foundation-bar__title span {
+  margin-top: 2px;
+  color: var(--tvm-muted);
+  font-size: 7px;
+}
+
+.foundation-bar__items {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.foundation-bar__items span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #626975;
+  font-size: 8px;
+  font-weight: 720;
+}
+
+/* ==========================================================
+   CSS 007 - FOOTER
+   ========================================================== */
+
+.tvm-footer {
+  min-height: 42px;
+  padding: 0 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-top: 1px solid var(--tvm-line);
+  background: rgba(255, 255, 255, 0.7);
+  color: #8a9098;
+  font-size: 7px;
+  font-weight: 730;
+  letter-spacing: 0.035em;
+}
+
+/* ==========================================================
+   CSS 008 - MODULE PLACEHOLDER PAGE
+   ========================================================== */
+
+.module-placeholder-page {
+  min-height: 100vh;
+  padding: 28px;
+  display: grid;
+  place-items: center;
+  background: var(--tvm-bg);
+}
+
+.module-placeholder-card {
+  width: min(560px, 100%);
+  padding: 30px;
+  border: 1px solid var(--tvm-line-dark);
+  border-radius: 12px;
+  background: var(--tvm-surface);
+  box-shadow: var(--tvm-shadow);
+}
+
+.module-placeholder-card__icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--tvm-amber-soft);
+  color: var(--tvm-amber);
+}
+
+.module-placeholder-card > span {
+  display: block;
+  margin-top: 24px;
+  color: var(--tvm-accent);
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.module-placeholder-card h1 {
+  margin: 5px 0 10px;
+  color: var(--tvm-ink);
+  font-size: 31px;
+  letter-spacing: -0.035em;
+}
+
+.module-placeholder-card p {
+  margin: 0;
+  color: var(--tvm-muted);
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+.module-placeholder-card__actions {
+  margin-top: 22px;
+}
+
+/* ==========================================================
+   CSS 009 - RESPONSIVE
+   ========================================================== */
+
+@media (max-width: 980px) {
+  .launcher-heading {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-summary {
+    width: fit-content;
+  }
+
+  .module-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .foundation-bar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .foundation-bar__items {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 680px) {
+  .tvm-topbar {
+    height: auto;
+    min-height: 58px;
+    padding: 10px 16px;
+  }
+
+  .tvm-logo__text strong {
+    font-size: 10px;
+  }
+
+  .topbar-button {
+    width: 32px;
+    padding: 0;
+    font-size: 0;
+  }
+
+  .tvm-main {
+    width: min(100% - 28px, 1240px);
+    padding-top: 28px;
+  }
+
+  .launcher-heading h1 {
+    font-size: 32px;
+  }
+
+  .platform-summary {
+    width: 100%;
+  }
+
+  .module-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-label-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .foundation-bar__items {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .tvm-footer {
+    padding: 11px 16px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+}
+
+/* ==========================================================
+   CSS 010 - MODULE LICENSING / PLATFORM ACCESS
+   ========================================================== */
+
+.topbar-status {
+  height: 32px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--tvm-line);
+  border-radius: 6px;
+  background: var(--tvm-surface-soft);
+  color: var(--tvm-muted);
+  font-size: 9px;
+  font-weight: 760;
+}
+
+.module-status--locked {
+  background: #f3f4f6;
+  color: #666d78;
+}
+
+.module-status--warning {
+  background: #f8ecec;
+  color: #8a4141;
+}
+
+.module-tile--locked {
+  border-style: dashed;
+}
+
+.module-action--locked {
+  border: 1px solid var(--tvm-line-dark);
+  background: var(--tvm-surface-soft);
+  color: var(--tvm-text);
+}
+
+.module-action--locked:hover {
+  border-color: var(--tvm-accent);
+  color: var(--tvm-accent-dark);
+}
+
+.platform-banner {
+  margin-top: 18px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid var(--tvm-line-dark);
+  border-radius: var(--tvm-radius);
+  background: var(--tvm-surface);
+}
+
+.platform-banner > div {
+  display: grid;
+  gap: 3px;
+}
+
+.platform-banner strong {
+  color: var(--tvm-ink);
+  font-size: 10px;
+}
+
+.platform-banner span {
+  color: var(--tvm-muted);
+  font-size: 9px;
+}
+
+.platform-banner--error {
+  border-color: #e4b9b9;
+  background: #fff6f6;
+  color: #8d3838;
+  font-size: 9px;
+}
+
+.platform-access-page,
+.platform-loading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  background: var(--tvm-bg);
+}
+
+.platform-loading {
+  align-content: center;
+  grid-auto-flow: column;
+  gap: 9px;
+  color: var(--tvm-muted);
+  font-size: 10px;
+  font-weight: 760;
+}
+
+.platform-access-card {
+  width: min(440px, 100%);
+  padding: 30px;
+  border: 1px solid var(--tvm-line-dark);
+  border-radius: 12px;
+  background: var(--tvm-surface);
+  box-shadow: var(--tvm-shadow);
+}
+
+.platform-access-icon {
+  width: 42px;
+  height: 42px;
+  margin-bottom: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--tvm-accent-soft);
+  color: var(--tvm-accent-dark);
+}
+
+.platform-access-card h1 {
+  margin: 8px 0 9px;
+  color: var(--tvm-ink);
+  font-size: 25px;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.platform-access-card > p {
+  margin: 0 0 20px;
+  color: var(--tvm-muted);
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.platform-access-card label {
+  margin-top: 11px;
+  display: grid;
+  gap: 5px;
+}
+
+.platform-access-card label span {
+  color: var(--tvm-text);
+  font-size: 8px;
+  font-weight: 820;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.platform-access-card input {
   width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--tvm-line-dark);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--tvm-ink);
+  outline: none;
+  font-size: 10px;
+}
 
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
-  }
+.platform-access-card input:focus {
+  border-color: var(--tvm-accent);
+  box-shadow: 0 0 0 3px var(--tvm-accent-soft);
+}
 
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
-  }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
-  }
+.platform-access-submit {
+  width: 100%;
+  margin-top: 15px;
+  justify-content: center;
+}
+
+.platform-access-message {
+  margin-top: 10px;
+  padding: 8px 9px;
+  border-radius: 6px;
+  background: var(--tvm-surface-soft);
+  color: var(--tvm-muted);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.platform-text-button,
+.platform-back-link {
+  margin-top: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  color: var(--tvm-muted);
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.platform-text-button:hover,
+.platform-back-link:hover {
+  color: var(--tvm-ink);
+}
+
+/* ==========================================================
+   CSS 011 - LOCAL TEST CONSOLE
+   ========================================================== */
+
+.dev-console {
+  display: grid;
+  gap: 28px;
+}
+
+.dev-section {
+  display: grid;
+  gap: 12px;
+}
+
+.dev-module-list {
+  display: grid;
+  border: 1px solid var(--tvm-line-dark);
+  border-radius: var(--tvm-radius);
+  overflow: hidden;
+  background: var(--tvm-surface);
+}
+
+.dev-module-row {
+  min-height: 58px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--tvm-line);
+}
+
+.dev-module-row:last-child {
+  border-bottom: 0;
+}
+
+.dev-module-row > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.dev-module-row strong {
+  color: var(--tvm-ink);
+  font-size: 10px;
+}
+
+.dev-module-row span {
+  color: var(--tvm-muted);
+  font-size: 8px;
+}
+
+.dev-module-actions {
+  display: flex;
+  gap: 7px;
+}
+
+.dev-toggle {
+  height: 32px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--tvm-line-dark);
+  border-radius: 6px;
+  background: var(--tvm-surface-soft);
+  color: var(--tvm-muted);
+  font-size: 8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.dev-toggle.is-on {
+  border-color: #b7d8c6;
+  background: var(--tvm-green-soft);
+  color: var(--tvm-green);
+}
+
+.dev-link-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dev-link-grid a {
+  min-height: 64px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--tvm-line-dark);
+  border-radius: 8px;
+  background: var(--tvm-surface);
+  color: var(--tvm-ink);
+  font-size: 10px;
+  font-weight: 820;
+}
+
+.dev-link-grid a:hover {
+  border-color: var(--tvm-accent);
+  color: var(--tvm-accent-dark);
+}
+
+.spin {
+  animation: tvm-spin 0.8s linear infinite;
+}
+
+@keyframes tvm-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 760px) {
+  .topbar-status { display: none; }
+  .platform-banner,
+  .dev-module-row { align-items: flex-start; flex-direction: column; }
+  .dev-link-grid { grid-template-columns: 1fr; }
 }
