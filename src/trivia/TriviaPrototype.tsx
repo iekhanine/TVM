@@ -38,6 +38,7 @@ import {
   useLocation,
 } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
+import QRCode from 'react-qr-code';
 
 import {
   bootstrapTriviaWorkspace,
@@ -75,6 +76,7 @@ import {
 } from '../lib/supabase';
 
 import TriviaQuestionLibrary from './TriviaQuestionLibrary';
+import TriviaResults from './TriviaResults';
 
 import './TriviaPrototype.css';
 
@@ -417,6 +419,16 @@ function TriviaHostRuntime() {
               ? await nextTriviaQuestion(sessionId)
               : await endTriviaSession(sessionId);
 
+      if (action === 'end') {
+        const endedCode = joinCode;
+        await broadcastTriviaSignal(endedCode);
+        setHostSession(null);
+        setJoinCode('');
+        live.setState(null);
+        window.localStorage.removeItem(LAST_GAME_CODE_KEY);
+        return;
+      }
+
       live.setState(nextState);
       await broadcastTriviaSignal(joinCode);
     } catch (error) {
@@ -498,8 +510,8 @@ function TriviaHostRuntime() {
           <TriviaQuestionLibrary organizationId={workspace.organizationId} />
         ) : hostSection === 'games' ? (
           <HostSectionPlaceholder icon={<Gamepad2 size={28} />} kicker="GAMES" title="Game Builder" copy="This section is reserved for building reusable Trivia games and packs. We will wire it after the Question Library." />
-        ) : hostSection === 'results' ? (
-          <HostSectionPlaceholder icon={<BarChart3 size={28} />} kicker="RESULTS" title="Game Results" copy="Completed sessions, team standings, question performance, and game history will live here." />
+        ) : hostSection === 'results' && workspace ? (
+          <TriviaResults venueId={workspace.venueId} />
         ) : !state ? (
           <section className="host-panel runtime-empty-state">
             <Sparkles size={30} />
@@ -520,6 +532,8 @@ function TriviaHostRuntime() {
               <div className="session-strip__metric"><Clock3 size={16} /><div><strong>{state.phase === 'question' ? `${seconds}s` : '—'}</strong><span>Remaining</span></div></div>
               <div className="session-strip__state"><span className={`live-dot ${state.phase !== 'question' ? 'is-paused' : ''}`} /><div><strong>{phaseLabel}</strong><span>{state.venue}</span></div></div>
             </section>
+
+            <SessionAccessPanel joinCode={state.joinCode} />
 
             <div className="host-workspace-grid">
               <section className="host-panel question-control-panel">
@@ -573,25 +587,75 @@ function TriviaHostRuntime() {
               <LeaderboardPanel leaderboard={state.leaderboard} playerCount={state.playerCount} />
             </div>
 
-            <div className="host-lower-grid">
-              <section className="host-panel upcoming-panel">
-                <div className="host-panel__heading"><div><span className="panel-kicker">PUBLIC VIEWS</span><h2>Game Links</h2></div></div>
-                <div className="runtime-link-list">
-                  <Link to={`/trivia/display?code=${state.joinCode}`}><Monitor size={15} /><div><strong>TV Display</strong><span>Questions, reveals, and leaderboard</span></div><ArrowRight size={14} /></Link>
-                  <Link to={`/trivia/play?code=${state.joinCode}`}><Smartphone size={15} /><div><strong>Player Browser</strong><span>Join, teams, voting, and captain lock</span></div><ArrowRight size={14} /></Link>
-                </div>
-              </section>
-
-              <section className="host-panel join-panel">
-                <div className="host-panel__heading"><div><span className="panel-kicker">SESSION</span><h2>Join Instructions</h2></div></div>
-                <div className="runtime-join-code"><span>GAME CODE</span><strong>{state.joinCode}</strong></div>
-                <p>Players need only the code and a browser. No TVM account is required.</p>
-              </section>
-            </div>
           </>
         )}
       </main>
     </div>
+  );
+}
+
+function SessionAccessPanel({ joinCode }: { joinCode: string }) {
+  const displayUrl = `${window.location.origin}/trivia/display?code=${joinCode}`;
+  const playerUrl = `${window.location.origin}/trivia/play?code=${joinCode}`;
+
+  function copy(value: string) {
+    void navigator.clipboard?.writeText(value);
+  }
+
+  return (
+    <section className="host-panel session-access-panel">
+      <div className="host-panel__heading session-access-heading">
+        <div>
+          <span className="panel-kicker">SESSION ACCESS</span>
+          <h2>TV, player link, and QR code</h2>
+        </div>
+        <div className="session-access-code">
+          <span>GAME CODE</span>
+          <strong>{joinCode}</strong>
+        </div>
+      </div>
+
+      <div className="session-access-grid">
+        <article className="session-access-card">
+          <div className="session-access-card__icon"><Monitor size={19} /></div>
+          <div className="session-access-card__copy">
+            <span>TV DISPLAY URL</span>
+            <strong>Question Screen</strong>
+            <code>{displayUrl}</code>
+            <small>Open this URL on the venue TV, projector, Fire TV browser, or display computer.</small>
+          </div>
+          <div className="session-access-actions">
+            <a href={displayUrl} target="_blank" rel="noreferrer">Open TV Display <ArrowRight size={14} /></a>
+            <button type="button" onClick={() => copy(displayUrl)}><Copy size={14} /> Copy URL</button>
+          </div>
+        </article>
+
+        <article className="session-access-card">
+          <div className="session-access-card__icon"><Smartphone size={19} /></div>
+          <div className="session-access-card__copy">
+            <span>PLAYER URL</span>
+            <strong>Mobile Player</strong>
+            <code>{playerUrl}</code>
+            <small>Send this link directly to players or have them scan the QR code.</small>
+          </div>
+          <div className="session-access-actions">
+            <a href={playerUrl} target="_blank" rel="noreferrer">Open Player <ArrowRight size={14} /></a>
+            <button type="button" onClick={() => copy(playerUrl)}><Copy size={14} /> Copy URL</button>
+          </div>
+        </article>
+
+        <article className="session-qr-card">
+          <div className="session-qr-code">
+            <QRCode value={playerUrl} size={148} level="M" />
+          </div>
+          <div>
+            <span>SCAN TO PLAY</span>
+            <strong>{joinCode}</strong>
+            <small>Players scan this with their phone camera. No app and no TVM account required.</small>
+          </div>
+        </article>
+      </div>
+    </section>
   );
 }
 
@@ -650,10 +714,8 @@ function TriviaDisplayRuntime() {
   if (!code || !state) {
     return (
       <div className="trivia-display-shell">
-        <div className="display-prototype-bar"><Link to="/trivia"><ArrowLeft size={14} /> Host</Link><PrototypeSwitcher current="display" joinCode={code} /></div>
         <main className="runtime-display-code-entry">
-          <TriviaBrand />
-          <span>CONNECT A LIVE TV</span>
+          <span>CONNECT DISPLAY</span>
           <h1>Enter the Trivia game code.</h1>
           <input inputMode="numeric" maxLength={4} value={entry} onChange={(event) => setEntry(normalizeCode(event.target.value))} />
           {live.error && <div className="runtime-message runtime-message--error">{live.error}</div>}
@@ -669,19 +731,24 @@ function TriviaDisplayRuntime() {
 
   return (
     <div className="trivia-display-shell">
-      <div className="display-prototype-bar"><Link to="/trivia"><ArrowLeft size={14} /> Host</Link><PrototypeSwitcher current="display" joinCode={code} /></div>
       <main className="trivia-display-stage">
-        <header className="display-header">
-          <TriviaBrand />
+        <header className="display-header display-header--public">
           <div className="display-join-mini"><span>JOIN GAME</span><strong>{state.joinCode}</strong></div>
         </header>
 
         {state.phase === 'lobby' && (
           <section className="display-lobby">
-            <span className="display-round-kicker">TVM TRIVIA</span>
+            <span className="display-round-kicker">LIVE TRIVIA</span>
             <h1>{state.title}</h1>
             <p>Join from your phone, create your team, and get ready.</p>
-            <div className="display-join-callout"><div><span>GAME CODE</span><strong>{state.joinCode}</strong></div></div>
+            <div className="display-lobby-access">
+              <div className="display-join-callout"><div><span>GAME CODE</span><strong>{state.joinCode}</strong></div></div>
+              <div className="display-player-qr">
+                <div><QRCode value={`${window.location.origin}/trivia/play?code=${state.joinCode}`} size={176} level="M" /></div>
+                <span>SCAN TO JOIN</span>
+                <small>{window.location.host}/trivia/play?code={state.joinCode}</small>
+              </div>
+            </div>
             <div className="display-lobby-stats"><span><Users size={18} /> {state.playerCount} players</span><span><Trophy size={18} /> {state.teamCount} teams</span></div>
           </section>
         )}

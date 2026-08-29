@@ -2791,3 +2791,274 @@
 .question-control-panel {
   min-width: 0;
 }
+
+/* ==========================================================
+   TRIVIA SESSION ACCESS / QR
+   Explicit public URLs and player QR entry points.
+   ========================================================== */
+
+.session-access-panel {
+  margin: 14px 0;
+  padding: 16px;
+}
+
+.session-access-heading {
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.session-access-code {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.session-access-code span {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #aeb7c8;
+}
+
+.session-access-code strong {
+  font-size: 24px;
+  letter-spacing: 0.12em;
+  color: #ffffff;
+}
+
+.session-access-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 230px;
+  gap: 12px;
+}
+
+.session-access-card,
+.session-qr-card {
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.session-access-card {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  column-gap: 11px;
+  row-gap: 12px;
+  padding: 13px;
+}
+
+.session-access-card__icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.065);
+  color: #ffffff;
+}
+
+.session-access-card__copy {
+  min-width: 0;
+}
+
+.session-access-card__copy > span,
+.session-qr-card > div:last-child > span {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  color: #9ea9bb;
+}
+
+.session-access-card__copy > strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.session-access-card__copy code {
+  display: block;
+  overflow: hidden;
+  margin-bottom: 8px;
+  padding: 8px 9px;
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.24);
+  color: #dce5f5;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session-access-card__copy small,
+.session-qr-card small {
+  display: block;
+  color: #aeb7c8;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.session-access-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.session-access-actions a,
+.session-access-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.055);
+  color: #f5f7fb;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 750;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.session-access-actions a:hover,
+.session-access-actions button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.session-qr-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 13px;
+  text-align: center;
+}
+
+.session-qr-code {
+  display: grid;
+  place-items: center;
+  padding: 10px;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.session-qr-code svg,
+.display-player-qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.session-qr-card > div:last-child > strong {
+  display: block;
+  margin: 3px 0 7px;
+  font-size: 28px;
+  letter-spacing: 0.12em;
+  color: #ffffff;
+}
+
+.display-lobby-access {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(26px, 5vw, 72px);
+  margin: 28px auto 22px;
+}
+
+.display-lobby-access .display-join-callout {
+  margin: 0;
+}
+
+.display-player-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.display-player-qr > div {
+  width: 196px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+}
+
+.display-player-qr > span {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  color: #ffffff;
+}
+
+.display-player-qr > small {
+  max-width: 290px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 11px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1100px) {
+  .session-access-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .session-qr-card {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    text-align: left;
+  }
+
+  .session-qr-code {
+    width: 150px;
+    flex: 0 0 150px;
+  }
+}
+
+@media (max-width: 760px) {
+  .session-access-heading,
+  .display-lobby-access {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .session-access-code {
+    align-self: stretch;
+    justify-content: space-between;
+  }
+
+  .session-access-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .session-qr-card {
+    grid-column: auto;
+  }
+}
+
+/* ==========================================================
+   DISPLAY PUBLIC SURFACE
+   The TV route is presentation-only. No host/project chrome.
+   ========================================================== */
+
+.display-header--public {
+  justify-content: flex-end;
+}
+
+.trivia-display-shell .display-prototype-bar {
+  display: none !important;
+}
