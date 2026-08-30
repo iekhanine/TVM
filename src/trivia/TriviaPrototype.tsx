@@ -632,7 +632,12 @@ function TriviaHostRuntime() {
                 <div className="host-control-bar">
                   {state.phase === 'lobby' && <button className="control-button control-button--primary" type="button" disabled={busy} onClick={() => void hostAction('start')}>Start Game <ArrowRight size={15} /></button>}
                   {state.phase === 'question' && <button className="control-button control-button--primary" type="button" disabled={busy} onClick={() => void hostAction('reveal')}>Reveal Answer <ArrowRight size={15} /></button>}
-                  {state.phase === 'reveal' && <button className="control-button control-button--primary" type="button" disabled={busy} onClick={() => void hostAction('scoreboard')}>Show Standings <Trophy size={15} /></button>}
+                  {state.phase === 'reveal' && (
+                    <>
+                      <button className="control-button control-button--primary" type="button" disabled={busy} onClick={() => void hostAction('next')}>Next Question <ArrowRight size={15} /></button>
+                      <button className="control-button control-button--quiet" type="button" disabled={busy} onClick={() => void hostAction('scoreboard')}>Show Standings <Trophy size={15} /></button>
+                    </>
+                  )}
                   {state.phase === 'scoreboard' && <button className="control-button control-button--primary" type="button" disabled={busy} onClick={() => void hostAction('next')}>Next Question <ArrowRight size={15} /></button>}
                   {state.phase === 'finished' && <button className="control-button control-button--primary" type="button" disabled={busy} onClick={() => void createGame()}><Plus size={15} /> New Game</button>}
                   {state.phase !== 'finished' && <button className="control-button control-button--quiet" type="button" disabled={busy} onClick={() => void hostAction('end')}>End Game</button>}
