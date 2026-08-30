@@ -756,6 +756,56 @@ export type SaveTriviaQuestionInput = {
   }>;
 };
 
+
+export type TriviaImportOption = {
+  label: string;
+  isCorrect: boolean;
+};
+
+export type TriviaImportQuestion = {
+  sourceQuestionId: string;
+  categorySlug: string;
+  difficulty: TriviaQuestionDifficulty;
+  prompt: string;
+  explanation?: string | null;
+  points?: number;
+  timeLimitSeconds?: number;
+  tags?: string[];
+  sourceName: string;
+  sourceUrl?: string | null;
+  options: TriviaImportOption[];
+};
+
+export type TriviaImportPayload = {
+  format?: string;
+  version?: number;
+  source?: {
+    name?: string;
+    url?: string;
+  };
+  defaults?: {
+    points?: number;
+    timeLimitSeconds?: number;
+    questionType?: string;
+  };
+  questionCount?: number;
+  questions: TriviaImportQuestion[];
+};
+
+export type TriviaImportError = {
+  sourceQuestionId: string | null;
+  prompt: string | null;
+  message: string;
+};
+
+export type TriviaImportResult = {
+  total: number;
+  imported: number;
+  duplicates: number;
+  invalid: number;
+  errors: TriviaImportError[];
+};
+
 type RawQuestionRow = {
   id: string;
   round_id: string;
@@ -1005,6 +1055,50 @@ export async function deleteTriviaLibraryQuestion(questionId: string) {
 
   if (error) throw new Error(error.message);
   return Boolean(data);
+}
+
+
+export async function importTriviaQuestions(
+  organizationId: string,
+  payload: TriviaImportPayload | TriviaImportQuestion[],
+): Promise<TriviaImportResult> {
+  const client = requireSupabase();
+
+  const normalizedPayload: TriviaImportPayload = Array.isArray(payload)
+    ? { questions: payload }
+    : payload;
+
+  const { data, error } = await client.rpc('tvm_import_library_questions', {
+    p_organization_id: organizationId,
+    p_payload: normalizedPayload,
+  });
+
+  if (error) throw new Error(error.message);
+
+  const raw = unwrapRpcObject<Record<string, unknown>>(data);
+  const rawErrors = Array.isArray(raw.errors) ? raw.errors : [];
+
+  return {
+    total: Number(raw.total ?? 0),
+    imported: Number(raw.imported ?? 0),
+    duplicates: Number(raw.duplicates ?? 0),
+    invalid: Number(raw.invalid ?? 0),
+    errors: rawErrors.map((item) => {
+      const row = item && typeof item === 'object'
+        ? item as Record<string, unknown>
+        : {};
+
+      return {
+        sourceQuestionId: row.sourceQuestionId
+          ? String(row.sourceQuestionId)
+          : null,
+        prompt: row.prompt
+          ? String(row.prompt)
+          : null,
+        message: String(row.message ?? 'Unknown import error.'),
+      } satisfies TriviaImportError;
+    }),
+  };
 }
 
 /* ==========================================================
