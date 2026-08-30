@@ -1642,10 +1642,12 @@ function TriviaPlayerRuntime() {
     <div className="trivia-player-shell">
       <main className="player-phone-wrap">
         <div className="player-phone" ref={playerScrollRef}>
-          <header className="player-phone__header">
-            <TriviaBrand />
-            {joined && <button className="player-connected runtime-connected-button" type="button" onClick={leaveLocalSession}><Wifi size={12} /> Game {code}</button>}
-          </header>
+          {!(joined && team && question && state && (state.phase === 'question' || state.phase === 'reveal')) && (
+            <header className="player-phone__header">
+              <TriviaBrand />
+              {joined && <button className="player-connected runtime-connected-button" type="button" onClick={leaveLocalSession}><Wifi size={12} /> Game {code}</button>}
+            </header>
+          )}
 
           {error && !gameFinished && <div className="runtime-message runtime-message--error runtime-player-message">{error}</div>}
 
@@ -1700,7 +1702,6 @@ function TriviaPlayerRuntime() {
           {joined && team && question && state && (state.phase === 'question' || state.phase === 'reveal') && (
             <section className="player-question-screen">
               <div className="player-question-topline">
-                <span>{question.type.replace('_', ' ')}</span>
                 <div className="player-timer"><strong>{state.phase === 'question' ? seconds : '✓'}</strong><span>{state.phase === 'question' ? 'sec' : 'done'}</span></div>
               </div>
 

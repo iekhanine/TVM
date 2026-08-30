@@ -4673,3 +4673,74 @@ body {
     min-height: 56px;
   }
 }
+
+/* ==========================================================
+   MOBILE ACTIVE QUESTION - HARD LAYOUT RESET
+   Gameplay is intentionally first. No legacy ordering applies.
+   ========================================================== */
+.trivia-player-shell .player-question-screen {
+  display: block !important;
+  width: 100%;
+  min-width: 0;
+  padding: max(10px, env(safe-area-inset-top, 0px)) 14px max(24px, env(safe-area-inset-bottom, 0px));
+}
+
+.trivia-player-shell .player-question-topline {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin: 0 0 8px;
+}
+
+.trivia-player-shell .player-question-topline > span {
+  display: none !important;
+}
+
+.trivia-player-shell .player-question-copy {
+  margin: 0 0 14px !important;
+}
+
+.trivia-player-shell .player-question-copy h1 {
+  margin: 0 !important;
+  font-size: clamp(25px, 7.2vw, 38px);
+  line-height: 1.08;
+}
+
+.trivia-player-shell .player-answer-list {
+  display: grid !important;
+  gap: 10px;
+  margin: 0 !important;
+}
+
+.trivia-player-shell .team-lock-button {
+  position: sticky;
+  bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  z-index: 50;
+  width: 100%;
+  min-height: 58px;
+  margin: 14px 0 0 !important;
+}
+
+.trivia-player-shell .player-locked-card,
+.trivia-player-shell .runtime-reveal-note {
+  margin-top: 12px !important;
+}
+
+.trivia-player-shell .player-gameplay-details {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.trivia-player-shell .player-gameplay-details > * {
+  order: initial !important;
+}
+
+@media (max-width: 380px) {
+  .trivia-player-shell .player-question-screen {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
