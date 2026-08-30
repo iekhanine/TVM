@@ -11,7 +11,6 @@ import {
   Gamepad2,
   Gauge,
   Library,
-  ListChecks,
   LogOut,
   Monitor,
   MoreHorizontal,
@@ -37,6 +36,7 @@ import {
 import {
   Link,
   useLocation,
+  useNavigate,
 } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
 import QRCode from 'react-qr-code';
@@ -50,6 +50,7 @@ import {
   endTriviaSession,
   getCurrentHostUser,
   getLatestTriviaSession,
+  getTriviaHostRoster,
   getTriviaPlayerContext,
   getTriviaState,
   joinTriviaSession,
@@ -66,6 +67,7 @@ import {
   startTriviaSession,
   subscribeTriviaSignals,
   type HostSessionSummary,
+  type TriviaHostRoster,
   type TriviaLeaderboardRow,
   type TriviaPlayerContext,
   type TriviaState,
@@ -102,6 +104,7 @@ type StoredPlayerSession = {
 
 const LAST_GAME_CODE_KEY = 'tvm_trivia_last_code';
 const PLAYER_SESSION_KEY = 'tvm_trivia_player_session';
+const PLAYER_NICKNAME_KEY = 'tvm_trivia_player_nickname';
 
 function readStoredPlayerSession(): StoredPlayerSession | null {
   try {
@@ -115,6 +118,16 @@ function readStoredPlayerSession(): StoredPlayerSession | null {
 function storePlayerSession(value: StoredPlayerSession) {
   window.localStorage.setItem(PLAYER_SESSION_KEY, JSON.stringify(value));
   window.localStorage.setItem(LAST_GAME_CODE_KEY, value.joinCode);
+  window.localStorage.setItem(PLAYER_NICKNAME_KEY, value.nickname);
+}
+
+function readStoredPlayerNickname() {
+  return window.localStorage.getItem(PLAYER_NICKNAME_KEY)?.trim() ?? '';
+}
+
+function storePlayerNickname(value: string) {
+  const nickname = value.trim();
+  if (nickname) window.localStorage.setItem(PLAYER_NICKNAME_KEY, nickname);
 }
 
 function clearStoredPlayerSession() {
@@ -335,9 +348,28 @@ function TriviaHostRuntime() {
   const [busy, setBusy] = useState(false);
   const [hostError, setHostError] = useState('');
   const [hostSection, setHostSection] = useState<HostSection>('live');
+  const [hostRoster, setHostRoster] = useState<TriviaHostRoster | null>(null);
+  const [hostRosterError, setHostRosterError] = useState('');
 
   const live = useTriviaState(joinCode);
   const seconds = useCountdown(live.state?.answerDeadlineAt);
+  const activeHostSessionId = live.state?.sessionId ?? hostSession?.id ?? '';
+
+  const refreshHostRoster = useCallback(async () => {
+    if (!activeHostSessionId) {
+      setHostRoster(null);
+      setHostRosterError('');
+      return;
+    }
+
+    try {
+      const nextRoster = await getTriviaHostRoster(activeHostSessionId);
+      setHostRoster(nextRoster);
+      setHostRosterError('');
+    } catch (error) {
+      setHostRosterError(getErrorMessage(error));
+    }
+  }, [activeHostSessionId]);
 
   const loadHost = useCallback(async () => {
     try {
@@ -376,6 +408,37 @@ function TriviaHostRuntime() {
       void loadHost();
     });
   }, [loadHost]);
+
+  useEffect(() => {
+    if (!user || !activeHostSessionId || hostSection !== 'live') {
+      if (!activeHostSessionId) setHostRoster(null);
+      return undefined;
+    }
+
+    void refreshHostRoster();
+
+    const interval = window.setInterval(() => {
+      void refreshHostRoster();
+    }, 2500);
+
+    return () => window.clearInterval(interval);
+  }, [
+    activeHostSessionId,
+    hostSection,
+    refreshHostRoster,
+    user,
+  ]);
+
+  useEffect(() => {
+    if (!user || !activeHostSessionId || hostSection !== 'live' || !live.state) return;
+    void refreshHostRoster();
+  }, [
+    activeHostSessionId,
+    hostSection,
+    live.state,
+    refreshHostRoster,
+    user,
+  ]);
 
   async function createGame() {
     if (!workspace) return;
@@ -425,6 +488,8 @@ function TriviaHostRuntime() {
         await broadcastTriviaSignal(endedCode);
         setHostSession(null);
         setJoinCode('');
+        setHostRoster(null);
+        setHostRosterError('');
         live.setState(null);
         window.localStorage.removeItem(LAST_GAME_CODE_KEY);
         return;
@@ -525,17 +590,6 @@ function TriviaHostRuntime() {
           </section>
         ) : (
           <>
-            <section className="session-strip">
-              <div className="session-strip__code"><span>JOIN CODE</span><strong>{state.joinCode}</strong></div>
-              <div className="session-strip__metric"><Trophy size={16} /><div><strong>{state.teamCount}</strong><span>Teams</span></div></div>
-              <div className="session-strip__metric"><Users size={16} /><div><strong>{state.playerCount}</strong><span>Players</span></div></div>
-              <div className="session-strip__metric"><ListChecks size={16} /><div><strong>{answered} / {teamCount}</strong><span>Teams answered</span></div></div>
-              <div className="session-strip__metric"><Clock3 size={16} /><div><strong>{state.phase === 'question' ? `${seconds}s` : '—'}</strong><span>Remaining</span></div></div>
-              <div className="session-strip__state"><span className={`live-dot ${state.phase !== 'question' ? 'is-paused' : ''}`} /><div><strong>{phaseLabel}</strong><span>{state.venue}</span></div></div>
-            </section>
-
-            <SessionAccessPanel joinCode={state.joinCode} />
-
             <div className="host-workspace-grid">
               <section className="host-panel question-control-panel">
                 <div className="host-panel__heading">
@@ -588,10 +642,189 @@ function TriviaHostRuntime() {
               <LeaderboardPanel leaderboard={state.leaderboard} playerCount={state.playerCount} />
             </div>
 
+            <LiveResponsePanel
+              roster={hostRoster}
+              phase={state.phase}
+              error={hostRosterError}
+            />
+
+            <SessionAccessPanel joinCode={state.joinCode} />
+
           </>
         )}
       </main>
     </div>
+  );
+}
+
+
+function LiveResponsePanel({
+  roster,
+  phase,
+  error,
+}: {
+  roster: TriviaHostRoster | null;
+  phase: TriviaState['phase'];
+  error: string;
+}) {
+  const hasQuestion = Boolean(roster?.currentQuestionId);
+  const allLocked = Boolean(
+    hasQuestion
+    && roster
+    && roster.totalTeams > 0
+    && roster.lockedTeams === roster.totalTeams,
+  );
+
+  return (
+    <section className="host-panel live-response-panel">
+      <div className="host-panel__heading live-response-heading">
+        <div>
+          <span className="panel-kicker">LIVE PARTICIPATION</span>
+          <h2>Teams & Players</h2>
+        </div>
+
+        <div className={`live-lock-summary ${allLocked ? 'is-complete' : ''}`}>
+          {allLocked ? <Check size={15} /> : <Clock3 size={15} />}
+          <div>
+            <strong>
+              {hasQuestion
+                ? `${roster?.lockedTeams ?? 0} / ${roster?.totalTeams ?? 0} teams locked`
+                : `${roster?.totalTeams ?? 0} teams ready`}
+            </strong>
+            <span>
+              {allLocked
+                ? 'Everyone is locked in'
+                : phase === 'lobby'
+                  ? 'Waiting for the game to start'
+                  : 'Updates live as teams answer'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {error && (
+        <div className="runtime-message runtime-message--error live-response-error">
+          {error}
+        </div>
+      )}
+
+      {!roster ? (
+        <div className="runtime-mini-empty">Loading team and player status…</div>
+      ) : (
+        <>
+          <div className="live-response-stats">
+            <div>
+              <strong>{roster.totalTeams}</strong>
+              <span>Teams</span>
+            </div>
+            <div>
+              <strong>{roster.totalPlayers}</strong>
+              <span>Players</span>
+            </div>
+            <div>
+              <strong>{hasQuestion ? `${roster.votedPlayers}/${roster.totalPlayers}` : '—'}</strong>
+              <span>Players voted</span>
+            </div>
+            <div className={allLocked ? 'is-complete' : ''}>
+              <strong>{hasQuestion ? `${roster.lockedTeams}/${roster.totalTeams}` : '—'}</strong>
+              <span>Teams locked</span>
+            </div>
+          </div>
+
+          <div className="host-team-status-list">
+            {roster.teams.length === 0 && (
+              <div className="runtime-mini-empty">No teams have been created yet.</div>
+            )}
+
+            {roster.teams.map((team) => (
+              <article
+                className={`host-team-status-card ${team.locked ? 'is-locked' : ''}`}
+                key={team.id}
+              >
+                <div className="host-team-status-main">
+                  <span className={`leaderboard-rank rank-${team.rank}`}>{team.rank}</span>
+
+                  <div className="host-team-status-name">
+                    <strong>{team.name}</strong>
+                    <span>
+                      {team.memberCount} member{team.memberCount === 1 ? '' : 's'} · {team.score.toLocaleString()} pts
+                    </span>
+                  </div>
+
+                  <div className="host-team-vote-status">
+                    <strong>{hasQuestion ? `${team.votedCount}/${team.memberCount}` : '—'}</strong>
+                    <span>{hasQuestion ? 'voted' : 'ready'}</span>
+                  </div>
+
+                  <span className={`host-team-lock-badge ${team.locked ? 'is-locked' : ''}`}>
+                    {team.locked ? <Check size={13} /> : <Clock3 size={13} />}
+                    {team.locked ? 'LOCKED' : hasQuestion ? 'WAITING' : 'READY'}
+                  </span>
+                </div>
+
+                <div className="host-team-members">
+                  {team.members.map((member) => (
+                    <div
+                      className={`host-player-chip ${member.hasVoted ? 'has-voted' : ''} ${member.isOnline ? 'is-online' : 'is-offline'}`}
+                      key={member.id}
+                    >
+                      <span className="host-player-presence" />
+                      <strong>{member.nickname}</strong>
+                      {member.isCaptain && (
+                        <span className="host-player-captain">
+                          <Crown size={10} /> Captain
+                        </span>
+                      )}
+                      {hasQuestion && (
+                        <span className={`host-player-vote ${member.hasVoted ? 'has-voted' : ''}`}>
+                          {member.hasVoted ? <Check size={10} /> : <Clock3 size={10} />}
+                          {member.hasVoted ? 'Voted' : 'Waiting'}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {team.locked && (
+                  <div className="host-team-locked-meta">
+                    <Check size={12} />
+                    <span>
+                      Final answer locked
+                      {team.lockedByNickname ? ` by ${team.lockedByNickname}` : ''}
+                    </span>
+                  </div>
+                )}
+              </article>
+            ))}
+          </div>
+
+          {roster.unassignedPlayers.length > 0 && (
+            <div className="host-unassigned-players">
+              <div className="host-unassigned-heading">
+                <div>
+                  <CircleHelp size={14} />
+                  <strong>Not on a team yet</strong>
+                </div>
+                <span>{roster.unassignedPlayers.length}</span>
+              </div>
+
+              <div className="host-team-members">
+                {roster.unassignedPlayers.map((player) => (
+                  <div
+                    className={`host-player-chip ${player.isOnline ? 'is-online' : 'is-offline'}`}
+                    key={player.id}
+                  >
+                    <span className="host-player-presence" />
+                    <strong>{player.nickname}</strong>
+                    <span className="host-player-vote">Waiting for team</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </section>
   );
 }
 
@@ -604,59 +837,66 @@ function SessionAccessPanel({ joinCode }: { joinCode: string }) {
   }
 
   return (
-    <section className="host-panel session-access-panel">
-      <div className="host-panel__heading session-access-heading">
-        <div>
+    <details className="host-panel session-access-panel session-access-drawer">
+      <summary className="session-access-drawer__summary">
+        <div className="session-access-drawer__title">
           <span className="panel-kicker">SESSION ACCESS</span>
-          <h2>TV, player link, and QR code</h2>
+          <strong>TV display, player link & QR code</strong>
+          <small>Open this drawer when you need to connect a screen or share the game.</small>
         </div>
-        <div className="session-access-code">
-          <span>GAME CODE</span>
-          <strong>{joinCode}</strong>
-        </div>
-      </div>
 
-      <div className="session-access-grid">
-        <article className="session-access-card">
-          <div className="session-access-card__icon"><Monitor size={19} /></div>
-          <div className="session-access-card__copy">
-            <span>TV DISPLAY URL</span>
-            <strong>Question Screen</strong>
-            <code>{displayUrl}</code>
-            <small>Open this URL on the venue TV, projector, Fire TV browser, or display computer.</small>
-          </div>
-          <div className="session-access-actions">
-            <a href={displayUrl} target="_blank" rel="noreferrer">Open TV Display <ArrowRight size={14} /></a>
-            <button type="button" onClick={() => copy(displayUrl)}><Copy size={14} /> Copy URL</button>
-          </div>
-        </article>
-
-        <article className="session-access-card">
-          <div className="session-access-card__icon"><Smartphone size={19} /></div>
-          <div className="session-access-card__copy">
-            <span>PLAYER URL</span>
-            <strong>Mobile Player</strong>
-            <code>{playerUrl}</code>
-            <small>Send this link directly to players or have them scan the QR code.</small>
-          </div>
-          <div className="session-access-actions">
-            <a href={playerUrl} target="_blank" rel="noreferrer">Open Player <ArrowRight size={14} /></a>
-            <button type="button" onClick={() => copy(playerUrl)}><Copy size={14} /> Copy URL</button>
-          </div>
-        </article>
-
-        <article className="session-qr-card">
-          <div className="session-qr-code">
-            <QRCode value={playerUrl} size={148} level="M" />
-          </div>
-          <div>
-            <span>SCAN TO PLAY</span>
+        <div className="session-access-drawer__meta">
+          <div className="session-access-code">
+            <span>GAME CODE</span>
             <strong>{joinCode}</strong>
-            <small>Players scan this with their phone camera. No app and no TVM account required.</small>
           </div>
-        </article>
+          <ChevronDown className="session-access-drawer__chevron" size={18} />
+        </div>
+      </summary>
+
+      <div className="session-access-drawer__body">
+        <div className="session-access-grid">
+          <article className="session-access-card">
+            <div className="session-access-card__icon"><Monitor size={19} /></div>
+            <div className="session-access-card__copy">
+              <span>TV DISPLAY URL</span>
+              <strong>Question Screen</strong>
+              <code>{displayUrl}</code>
+              <small>Open this URL on the venue TV, projector, Fire TV browser, or display computer.</small>
+            </div>
+            <div className="session-access-actions">
+              <a href={displayUrl} target="_blank" rel="noreferrer">Open TV Display <ArrowRight size={14} /></a>
+              <button type="button" onClick={() => copy(displayUrl)}><Copy size={14} /> Copy URL</button>
+            </div>
+          </article>
+
+          <article className="session-access-card">
+            <div className="session-access-card__icon"><Smartphone size={19} /></div>
+            <div className="session-access-card__copy">
+              <span>PLAYER URL</span>
+              <strong>Mobile Player</strong>
+              <code>{playerUrl}</code>
+              <small>Send this link directly to players or have them scan the QR code.</small>
+            </div>
+            <div className="session-access-actions">
+              <a href={playerUrl} target="_blank" rel="noreferrer">Open Player <ArrowRight size={14} /></a>
+              <button type="button" onClick={() => copy(playerUrl)}><Copy size={14} /> Copy URL</button>
+            </div>
+          </article>
+
+          <article className="session-qr-card">
+            <div className="session-qr-code">
+              <QRCode value={playerUrl} size={148} level="M" />
+            </div>
+            <div>
+              <span>SCAN TO PLAY</span>
+              <strong>{joinCode}</strong>
+              <small>Players scan this with their phone camera. No app and no TVM account required.</small>
+            </div>
+          </article>
+        </div>
       </div>
-    </section>
+    </details>
   );
 }
 
@@ -803,6 +1043,7 @@ function TriviaDisplayRuntime() {
 
 function TriviaPlayerRuntime() {
   const location = useLocation();
+  const navigate = useNavigate();
   const playerScrollRef = useRef<HTMLDivElement>(null);
 
   // An explicit ?code=#### in the URL always wins over any previously
@@ -820,7 +1061,7 @@ function TriviaPlayerRuntime() {
   const initialCode = explicitCode || stored?.joinCode || fallbackCode;
 
   const [code, setCode] = useState(initialCode);
-  const [playerName, setPlayerName] = useState(storedMatchesRequestedGame ? stored?.nickname ?? '' : stored?.nickname ?? '');
+  const [playerName, setPlayerName] = useState(stored?.nickname ?? readStoredPlayerNickname());
   const [playerToken, setPlayerToken] = useState(storedMatchesRequestedGame ? stored?.playerToken ?? '' : '');
   const [playerContext, setPlayerContext] = useState<TriviaPlayerContext | null>(null);
   const [teams, setTeams] = useState<TriviaTeamSummary[]>([]);
@@ -841,6 +1082,7 @@ function TriviaPlayerRuntime() {
     // Preserve the person's nickname for convenience, but never carry a
     // player token/team identity from one Trivia session into another.
     setPlayerName((current) => current || currentStored.nickname || '');
+    storePlayerNickname(currentStored.nickname);
     clearStoredPlayerSession();
     setPlayerToken('');
     setPlayerContext(null);
@@ -867,6 +1109,35 @@ function TriviaPlayerRuntime() {
 
     return () => window.cancelAnimationFrame(frame);
   }, [live.state?.phase, live.state?.question?.id]);
+
+  // A finished session is terminal for the mobile player. Preserve only the
+  // person's nickname for convenience; all session/team identity is thrown
+  // away so the next game always requires a fresh four-digit code and fresh
+  // team choice. The old ?code= query string is removed at the same time.
+  useEffect(() => {
+    if (live.state?.phase !== 'finished') return;
+
+    const rememberedNickname = (playerContext?.nickname || playerName).trim();
+    if (rememberedNickname) {
+      storePlayerNickname(rememberedNickname);
+      setPlayerName(rememberedNickname);
+    }
+
+    clearStoredPlayerSession();
+    window.localStorage.removeItem(LAST_GAME_CODE_KEY);
+
+    setCode('');
+    setPlayerToken('');
+    setPlayerContext(null);
+    setTeams([]);
+    setTeamName('');
+    setSelectedAnswer(null);
+    setBusy(false);
+    setError('');
+
+    playerScrollRef.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    navigate('/trivia/play', { replace: true });
+  }, [live.state?.phase, navigate, playerContext?.nickname, playerName]);
 
   const refreshPlayer = useCallback(async () => {
     if (!playerToken) return;

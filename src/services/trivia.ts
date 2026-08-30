@@ -149,6 +149,42 @@ export type HostSessionSummary = {
   created_at: string;
 };
 
+export type TriviaHostRosterMember = {
+  id: string;
+  nickname: string;
+  isCaptain: boolean;
+  status: string;
+  lastSeenAt: string;
+  isOnline: boolean;
+  hasVoted: boolean;
+};
+
+export type TriviaHostRosterTeam = {
+  id: string;
+  name: string;
+  score: number;
+  rank: number;
+  memberCount: number;
+  maxMembers: number;
+  votedCount: number;
+  locked: boolean;
+  lockedAt: string | null;
+  lockedByPlayerId: string | null;
+  lockedByNickname: string | null;
+  members: TriviaHostRosterMember[];
+};
+
+export type TriviaHostRoster = {
+  sessionId: string;
+  currentQuestionId: string | null;
+  totalPlayers: number;
+  totalTeams: number;
+  lockedTeams: number;
+  votedPlayers: number;
+  teams: TriviaHostRosterTeam[];
+  unassignedPlayers: TriviaHostRosterMember[];
+};
+
 /* ==========================================================
    TRIVIA SERVICE 002 - CLIENT GUARD / ERROR NORMALIZATION
    ========================================================== */
@@ -325,6 +361,18 @@ export async function getTriviaState(joinCode: string): Promise<TriviaState | nu
 
   if (error) throw new Error(error.message);
   return data as TriviaState | null;
+}
+
+export async function getTriviaHostRoster(
+  sessionId: string,
+): Promise<TriviaHostRoster | null> {
+  const client = requireSupabase();
+  const { data, error } = await client.rpc('tvm_get_trivia_host_roster', {
+    p_session_id: sessionId,
+  });
+
+  if (error) throw new Error(error.message);
+  return data as TriviaHostRoster | null;
 }
 
 /* ==========================================================
