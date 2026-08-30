@@ -1466,25 +1466,35 @@ function TriviaPlayerRuntime() {
     }
   }, [code]);
 
+  const gameFinished = live.state?.phase === 'finished';
+
   useEffect(() => {
-    if (!playerToken) return;
+    if (!playerToken || gameFinished) return undefined;
+
     void refreshPlayer();
     void refreshTeams();
+
     const interval = window.setInterval(() => {
       void refreshPlayer();
       void refreshTeams();
     }, 2500);
+
     return () => window.clearInterval(interval);
-  }, [playerToken, refreshPlayer, refreshTeams]);
+  }, [gameFinished, playerToken, refreshPlayer, refreshTeams]);
 
   useEffect(() => {
-    if (!playerToken || !code) return undefined;
+    if (!playerToken || !code || gameFinished) return undefined;
+
     return subscribeTriviaSignals(code, () => {
       void live.refresh();
       void refreshPlayer();
       void refreshTeams();
     });
-  }, [code, live.refresh, playerToken, refreshPlayer, refreshTeams]);
+  }, [code, gameFinished, live.refresh, playerToken, refreshPlayer, refreshTeams]);
+
+  useEffect(() => {
+    if (gameFinished) setError('');
+  }, [gameFinished]);
 
   useEffect(() => {
     const questionId = live.state?.question?.id ?? null;
@@ -1632,7 +1642,7 @@ function TriviaPlayerRuntime() {
             {joined && <button className="player-connected runtime-connected-button" type="button" onClick={leaveLocalSession}><Wifi size={12} /> Game {code}</button>}
           </header>
 
-          {error && <div className="runtime-message runtime-message--error runtime-player-message">{error}</div>}
+          {error && !gameFinished && <div className="runtime-message runtime-message--error runtime-player-message">{error}</div>}
 
           {!joined && (
             <section className="player-join-screen">
@@ -1711,6 +1721,41 @@ function TriviaPlayerRuntime() {
                 <div className="player-locked-card"><Check size={18} /><div><strong>Team answer locked.</strong><span>{team.name} has submitted its final answer.</span></div></div>
               ) : (
                 <div className="player-locked-card"><Clock3 size={18} /><div><strong>Voting is closed.</strong><span>Watch the TV for the answer and standings.</span></div></div>
+              )}
+
+              {team.isCaptain && (state.phase === 'question' || state.phase === 'reveal') && (playerContext?.teamMemberVotes?.length ?? 0) > 0 && (
+                <div className="captain-vote-detail">
+                  <div className="captain-vote-detail__heading">
+                    <div>
+                      <span>TEAMMATE ANSWERS</span>
+                      <strong>What your team selected</strong>
+                    </div>
+                    <Crown size={15} />
+                  </div>
+
+                  <div className="captain-vote-detail__list">
+                    {playerContext?.teamMemberVotes.map((memberVote) => {
+                      const selectedOption = question.options.find((option) => option.id === memberVote.optionId) ?? null;
+                      const selectedIndex = selectedOption
+                        ? question.options.findIndex((option) => option.id === selectedOption.id)
+                        : -1;
+
+                      return (
+                        <div className={`captain-vote-row ${selectedOption ? 'has-answer' : 'is-waiting'}`} key={memberVote.playerId}>
+                          <strong>{memberVote.nickname}</strong>
+                          {selectedOption ? (
+                            <span>
+                              <b>{String.fromCharCode(65 + selectedIndex)}</b>
+                              {selectedOption.label}
+                            </span>
+                          ) : (
+                            <span className="captain-vote-waiting"><Clock3 size={11} /> Waiting</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
 
               {team.isCaptain && state.phase === 'question' && (
