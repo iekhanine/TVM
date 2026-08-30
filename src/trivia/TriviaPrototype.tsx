@@ -72,10 +72,15 @@ import {
   subscribeTriviaSignals,
   type HostSessionSummary,
   type TriviaDisplayControl,
+  type TriviaDisplayFinalResult,
   type TriviaDisplayState,
   type TriviaHostRoster,
+  type TriviaHostRosterMember,
+  type TriviaHostRosterTeam,
   type TriviaLeaderboardRow,
+  type TriviaOptionState,
   type TriviaPlayerContext,
+  type TriviaTeamMemberVote,
   type TriviaState,
   type TriviaTeamSummary,
   type WorkspaceContext,
@@ -838,7 +843,7 @@ function LiveResponsePanel({
               <div className="runtime-mini-empty">No teams have been created yet.</div>
             )}
 
-            {roster.teams.map((team) => (
+            {roster.teams.map((team: TriviaHostRosterTeam) => (
               <article
                 className={`host-team-status-card ${team.locked ? 'is-locked' : ''}`}
                 key={team.id}
@@ -865,7 +870,7 @@ function LiveResponsePanel({
                 </div>
 
                 <div className="host-team-members">
-                  {team.members.map((member) => (
+                  {team.members.map((member: TriviaHostRosterMember) => (
                     <div
                       className={`host-player-chip ${member.hasVoted ? 'has-voted' : ''} ${member.isOnline ? 'is-online' : 'is-offline'}`}
                       key={member.id}
@@ -911,7 +916,7 @@ function LiveResponsePanel({
               </div>
 
               <div className="host-team-members">
-                {roster.unassignedPlayers.map((player) => (
+                {roster.unassignedPlayers.map((player: TriviaHostRosterMember) => (
                   <div
                     className={`host-player-chip ${player.isOnline ? 'is-online' : 'is-offline'}`}
                     key={player.id}
@@ -1133,7 +1138,7 @@ function TriviaDisplayRuntime() {
     let cancelled = false;
     setLoading(true);
     void resolveTriviaDisplayVenue(requestedCode)
-      .then((resolvedVenue) => {
+      .then((resolvedVenue: string | null) => {
         if (cancelled) return;
         if (!resolvedVenue) {
           setError('No Trivia venue was found for that game code.');
@@ -1144,7 +1149,7 @@ function TriviaDisplayRuntime() {
         setVenueId(resolvedVenue);
         window.history.replaceState({}, '', `/trivia/display?venue=${resolvedVenue}`);
       })
-      .catch((nextError) => {
+      .catch((nextError: unknown) => {
         if (!cancelled) {
           setError(getErrorMessage(nextError));
           setLoading(false);
@@ -1254,7 +1259,7 @@ function TriviaDisplayRuntime() {
               </div>
             )}
             <div className="display-scoreboard-list">
-              {result.leaderboard.slice(0, 8).map((team) => (
+              {result.leaderboard.slice(0, 8).map((team: TriviaDisplayFinalResult['leaderboard'][number]) => (
                 <div key={team.id}><span>{team.rank}</span><strong>{team.name}</strong><small>{team.members} members</small><b>{team.score.toLocaleString()}</b></div>
               ))}
             </div>
@@ -1316,7 +1321,7 @@ function TriviaDisplayRuntime() {
             <h1>{question.prompt}</h1>
 
             <div className="display-answer-grid">
-              {question.options.map((option, index) => (
+              {question.options.map((option: TriviaOptionState, index: number) => (
                 <div className={`display-answer ${reveal && option.isCorrect ? 'is-correct' : ''}`} key={option.id}>
                   <span>{String.fromCharCode(65 + index)}</span>
                   <strong>{option.label}</strong>
@@ -1338,7 +1343,7 @@ function TriviaDisplayRuntime() {
             <span className="display-round-kicker">STANDINGS</span>
             <h1>Leaderboard</h1>
             <div className="display-scoreboard-list">
-              {state.leaderboard.slice(0, 5).map((team) => (
+              {state.leaderboard.slice(0, 5).map((team: TriviaLeaderboardRow) => (
                 <div key={team.id}><span>{team.rank}</span><strong>{team.name}</strong><small>{team.members} members</small><b>{team.score.toLocaleString()}</b></div>
               ))}
             </div>
@@ -1734,7 +1739,7 @@ function TriviaPlayerRuntime() {
                   </div>
 
                   <div className="captain-vote-detail__list">
-                    {playerContext?.teamMemberVotes.map((memberVote) => {
+                    {playerContext?.teamMemberVotes.map((memberVote: TriviaTeamMemberVote) => {
                       const selectedOption = question.options.find((option) => option.id === memberVote.optionId) ?? null;
                       const selectedIndex = selectedOption
                         ? question.options.findIndex((option) => option.id === selectedOption.id)

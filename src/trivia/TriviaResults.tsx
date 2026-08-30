@@ -20,7 +20,9 @@ import {
   getTriviaResult,
   listTriviaResults,
   type TriviaResultDetail,
+  type TriviaResultLeaderboardRow,
   type TriviaResultListItem,
+  type TriviaResultQuestion,
   type TriviaResultsPayload,
 } from '../services/trivia';
 
@@ -95,7 +97,7 @@ export default function TriviaResults({ venueId }: Props) {
       const next = await listTriviaResults(venueId, 100, 0);
       setPayload(next);
       setSelectedSessionId((current) => {
-        if (current && next.results.some((row) => row.sessionId === current)) return current;
+        if (current && next.results.some((row: TriviaResultListItem) => row.sessionId === current)) return current;
         return next.results[0]?.sessionId ?? null;
       });
     } catch (nextError) {
@@ -120,10 +122,10 @@ export default function TriviaResults({ venueId }: Props) {
     setError('');
 
     void getTriviaResult(selectedSessionId)
-      .then((next) => {
+      .then((next: TriviaResultDetail) => {
         if (!cancelled) setDetail(next);
       })
-      .catch((nextError) => {
+      .catch((nextError: unknown) => {
         if (!cancelled) setError(getErrorMessage(nextError));
       })
       .finally(() => {
@@ -187,7 +189,7 @@ export default function TriviaResults({ venueId }: Props) {
               <strong>{payload.results.length}</strong>
             </div>
             <div className="results-history-list">
-              {payload.results.map((result) => (
+              {payload.results.map((result: TriviaResultListItem) => (
                 <ResultHistoryRow
                   key={result.sessionId}
                   result={result}
@@ -246,7 +248,7 @@ export default function TriviaResults({ venueId }: Props) {
                   <div className="results-panel-heading"><div><span className="panel-kicker">FINAL</span><h3>Leaderboard</h3></div></div>
                   <div className="results-leaderboard-table">
                     <div className="results-leaderboard-head"><span>Place</span><span>Team</span><span>Members</span><span>Accuracy</span><span>Score</span></div>
-                    {detail.leaderboard.map((team) => (
+                    {detail.leaderboard.map((team: TriviaResultLeaderboardRow) => (
                       <div className="results-leaderboard-row" key={team.id}>
                         <span className={`results-place place-${team.rank}`}>#{team.rank}</span>
                         <strong>{team.name}</strong>
@@ -261,7 +263,7 @@ export default function TriviaResults({ venueId }: Props) {
                 <section className="results-section-card">
                   <div className="results-panel-heading"><div><span className="panel-kicker">QUESTION ANALYSIS</span><h3>Question Performance</h3></div><strong>{detail.questions.length}</strong></div>
                   <div className="results-question-list">
-                    {detail.questions.map((question) => (
+                    {detail.questions.map((question: TriviaResultQuestion) => (
                       <div className="results-question-row" key={`${detail.sessionId}-${question.questionNumber}`}>
                         <div className="results-question-number">{question.questionNumber}</div>
                         <div className="results-question-copy">

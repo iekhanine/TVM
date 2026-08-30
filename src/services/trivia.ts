@@ -113,6 +113,12 @@ export type TriviaVoteSummary = {
   votes: number;
 };
 
+export type TriviaTeamMemberVote = {
+  playerId: string;
+  nickname: string;
+  optionId: string | null;
+};
+
 export type TriviaPlayerContext = {
   playerId: string;
   nickname: string;
@@ -124,6 +130,7 @@ export type TriviaPlayerContext = {
   team: TriviaTeamContext | null;
   currentVoteOptionId: string | null;
   teamVoteSummary: TriviaVoteSummary[];
+  teamMemberVotes: TriviaTeamMemberVote[];
   teamAnswer: {
     selectedOptionId: string | null;
     lockedByPlayerId: string | null;
