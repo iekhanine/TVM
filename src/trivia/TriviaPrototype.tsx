@@ -931,10 +931,10 @@ function TriviaHostRuntime() {
               <LeaderboardPanel leaderboard={state.leaderboard} playerCount={state.playerCount} />
             </div>
 
-            <HostCommentaryPanel
-              question={question}
-              phase={state.phase}
-            />
+<HostCommentaryPanel
+  question={question ?? null}
+  phase={state.phase}
+/>
 
             <LiveResponsePanel
               roster={hostRoster}
