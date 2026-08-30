@@ -30,7 +30,7 @@ export function PlatformLoginCard() {
       <section className="platform-access-card">
         <span className="platform-access-icon"><ShieldCheck size={22} /></span>
         <span className="launcher-kicker">TVM PLATFORM ACCESS</span>
-        <h1>{mode === 'signin' ? 'Sign in to Television Venue Media.' : 'Create your TVM account.'}</h1>
+        <h1>{mode === 'signin' ? 'Sign in to TVM.' : 'Create your TVM account.'}</h1>
         <p>Venue administrators sign in once, then TVM unlocks the modules licensed to their organization.</p>
         <label><span>Email</span><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></label>
         <label><span>Password</span><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></label>
