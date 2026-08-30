@@ -3330,3 +3330,67 @@
     min-height: 72px;
   }
 }
+
+
+/* ==========================================================
+   TRIVIA CSS 021 - MOBILE SCROLL / OVERSCROLL FIX
+   One scrolling surface, no white page reveal, and stable
+   viewport sizing across phase changes.
+   ========================================================== */
+
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  background: #0b1017;
+}
+
+html,
+body {
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+}
+
+.trivia-player-shell {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  background: #0b1017;
+}
+
+.player-phone-wrap {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #0b1017;
+}
+
+.player-phone {
+  height: 100%;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  background: #111720;
+}
+
+/* Make the active player screen size itself from its content rather than
+   leaving phantom space from an older/full-height prototype layout. */
+.player-join-screen,
+.player-question-screen,
+.player-team-screen,
+.player-team-lobby {
+  min-height: 0;
+  height: auto;
+}
+
+/* Keeps the bottom of the last card visually inside the app when a phone
+   has a home indicator/safe area. */
+.player-phone > section:last-child {
+  padding-bottom: max(clamp(22px, 6vw, 34px), env(safe-area-inset-bottom, 0px));
+}

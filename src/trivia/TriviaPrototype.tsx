@@ -30,6 +30,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -802,6 +803,7 @@ function TriviaDisplayRuntime() {
 
 function TriviaPlayerRuntime() {
   const location = useLocation();
+  const playerScrollRef = useRef<HTMLDivElement>(null);
 
   // An explicit ?code=#### in the URL always wins over any previously
   // stored player session. This prevents a browser that played an older
@@ -849,6 +851,22 @@ function TriviaPlayerRuntime() {
 
   const live = useTriviaState(playerToken ? code : '');
   const seconds = useCountdown(live.state?.answerDeadlineAt);
+
+  // Every major game-state transition should begin at the top of the
+  // player surface. This prevents the leaderboard/new question from
+  // inheriting the scroll position of the previous screen.
+  useEffect(() => {
+    const phase = live.state?.phase ?? '';
+    const questionId = live.state?.question?.id ?? '';
+    if (!phase && !questionId) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      playerScrollRef.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [live.state?.phase, live.state?.question?.id]);
 
   const refreshPlayer = useCallback(async () => {
     if (!playerToken) return;
@@ -1009,7 +1027,7 @@ function TriviaPlayerRuntime() {
   return (
     <div className="trivia-player-shell">
       <main className="player-phone-wrap">
-        <div className="player-phone">
+        <div className="player-phone" ref={playerScrollRef}>
           <header className="player-phone__header">
             <TriviaBrand />
             {joined && <button className="player-connected runtime-connected-button" type="button" onClick={leaveLocalSession}><Wifi size={12} /> Game {code}</button>}
