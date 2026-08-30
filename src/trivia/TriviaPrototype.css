@@ -4813,3 +4813,296 @@ body {
   color: #8994a5;
   opacity: 1;
 }
+
+/* ==========================================================
+   TRIVIA CSS 024 - QUESTION-SPECIFIC HOST COMMENTARY
+   Private notes generated for the exact active question.
+   ========================================================== */
+
+.host-commentary-panel {
+  margin-top: 14px;
+  overflow: hidden;
+  border-color: rgba(88, 216, 198, 0.16);
+  background:
+    linear-gradient(180deg, rgba(88, 216, 198, 0.028), transparent 96px),
+    var(--trivia-panel);
+}
+
+.host-commentary-heading {
+  min-height: 68px;
+  padding: 14px 16px;
+}
+
+.host-commentary-heading > div {
+  min-width: 0;
+}
+
+.host-commentary-heading .panel-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.host-commentary-heading small {
+  margin-top: 2px;
+  color: #7f8b9d;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.host-commentary-refresh {
+  min-height: 32px;
+  padding: 0 10px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid rgba(88, 216, 198, 0.24);
+  border-radius: 7px;
+  background: rgba(88, 216, 198, 0.07);
+  color: var(--trivia-accent-strong);
+  font-size: 8px;
+  font-weight: 820;
+  cursor: pointer;
+}
+
+.host-commentary-refresh:hover:not(:disabled) {
+  border-color: rgba(88, 216, 198, 0.42);
+  background: rgba(88, 216, 198, 0.12);
+}
+
+.host-commentary-refresh:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.host-commentary-error {
+  margin: 12px 16px 0;
+}
+
+.host-commentary-loading {
+  min-height: 92px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--trivia-accent);
+}
+
+.host-commentary-loading > div {
+  display: grid;
+  gap: 3px;
+}
+
+.host-commentary-loading strong {
+  color: var(--trivia-text);
+  font-size: 11px;
+}
+
+.host-commentary-loading span {
+  color: var(--trivia-muted);
+  font-size: 9px;
+}
+
+.host-commentary-question {
+  padding: 12px 16px;
+  display: grid;
+  gap: 4px;
+  border-bottom: 1px solid var(--trivia-line-soft);
+  background: rgba(6, 10, 16, 0.22);
+}
+
+.host-commentary-question span {
+  color: #6f7c90;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.host-commentary-question strong {
+  color: #dce2eb;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.host-commentary-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(230px, 0.8fr);
+}
+
+.host-commentary-block {
+  min-width: 0;
+  padding: 14px 16px 15px;
+  border-right: 1px solid var(--trivia-line-soft);
+}
+
+.host-commentary-block:last-child {
+  border-right: 0;
+}
+
+.host-commentary-block--avoid {
+  background: rgba(239, 125, 131, 0.035);
+}
+
+.host-commentary-label {
+  display: block;
+  margin-bottom: 9px;
+  color: #8290a4;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.host-commentary-block--avoid .host-commentary-label {
+  color: #d88c92;
+}
+
+.host-commentary-list {
+  display: grid;
+  gap: 7px;
+}
+
+.host-commentary-list p {
+  position: relative;
+  margin: 0;
+  padding-left: 12px;
+  color: #c2cad6;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.host-commentary-list p::before {
+  content: "";
+  position: absolute;
+  top: 0.62em;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(88, 216, 198, 0.72);
+}
+
+.host-commentary-list--prompts p {
+  color: #e0e5ec;
+  font-style: italic;
+}
+
+.host-commentary-block--avoid .host-commentary-list p {
+  color: #caa8ac;
+}
+
+.host-commentary-block--avoid .host-commentary-list p::before {
+  background: rgba(239, 125, 131, 0.75);
+}
+
+.host-commentary-after-reveal {
+  padding: 14px 16px 16px;
+  display: grid;
+  gap: 11px;
+  border-top: 1px solid rgba(105, 214, 154, 0.18);
+  background: rgba(105, 214, 154, 0.045);
+}
+
+.host-commentary-after-reveal__heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--trivia-green);
+}
+
+.host-commentary-after-reveal__heading > div {
+  display: grid;
+  gap: 2px;
+}
+
+.host-commentary-after-reveal__heading span {
+  color: var(--trivia-green);
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.host-commentary-after-reveal__heading strong {
+  color: #dfe8e4;
+  font-size: 10px;
+}
+
+.host-commentary-reveal-line {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 2px solid rgba(105, 214, 154, 0.55);
+  background: rgba(3, 8, 7, 0.24);
+  color: #eef5f1;
+  font-size: 11px;
+  font-weight: 720;
+  line-height: 1.45;
+}
+
+.host-commentary-footer {
+  min-height: 34px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border-top: 1px solid var(--trivia-line-soft);
+  background: rgba(8, 12, 18, 0.22);
+  color: #687589;
+  font-size: 8px;
+}
+
+.host-commentary-footer > svg {
+  flex: 0 0 auto;
+  color: rgba(88, 216, 198, 0.65);
+}
+
+.host-workspace-grid + .host-commentary-panel {
+  margin-top: 14px;
+}
+
+.host-commentary-panel + .live-response-panel {
+  margin-top: 14px;
+}
+
+@media (max-width: 1050px) {
+  .host-commentary-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .host-commentary-block:nth-child(2) {
+    border-right: 0;
+  }
+
+  .host-commentary-block--avoid {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--trivia-line-soft);
+  }
+}
+
+@media (max-width: 700px) {
+  .host-commentary-heading {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .host-commentary-refresh {
+    align-self: flex-start;
+  }
+
+  .host-commentary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .host-commentary-block {
+    border-right: 0;
+    border-bottom: 1px solid var(--trivia-line-soft);
+  }
+
+  .host-commentary-block--avoid {
+    grid-column: auto;
+    border-top: 0;
+  }
+}
+

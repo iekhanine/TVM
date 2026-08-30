@@ -193,6 +193,24 @@ export type TriviaHostRoster = {
 };
 
 
+export type TriviaHostCommentary = {
+  questionId: string;
+  generatedAt: string;
+  cached: boolean;
+  beforeReveal: {
+    talkingPoints: string[];
+    roomPrompts: string[];
+  };
+  afterReveal: {
+    talkingPoints: string[];
+    revealLine: string | null;
+  };
+  avoidSaying: string[];
+  sourceSummary: string | null;
+};
+
+
+
 
 export type TriviaDisplayMode = 'waiting' | 'session' | 'final';
 
@@ -493,6 +511,29 @@ export async function getTriviaHostRoster(
 
   if (error) throw new Error(error.message);
   return data as TriviaHostRoster | null;
+}
+
+
+export async function getTriviaHostCommentary(
+  questionId: string,
+  forceRefresh = false,
+): Promise<TriviaHostCommentary> {
+  const client = requireSupabase();
+
+  const { data, error } = await client.functions.invoke('trivia-host-commentary', {
+    body: {
+      questionId,
+      forceRefresh,
+    },
+  });
+
+  if (error) throw new Error(error.message);
+
+  if (!data || typeof data !== 'object') {
+    throw new Error('Host commentary service returned an invalid response.');
+  }
+
+  return data as TriviaHostCommentary;
 }
 
 /* ==========================================================

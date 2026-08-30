@@ -53,6 +53,7 @@ import {
   getTriviaDisplayControl,
   getTriviaDisplayState,
   getTriviaHostRoster,
+  getTriviaHostCommentary,
   getTriviaPlayerContext,
   getTriviaState,
   joinTriviaSession,
@@ -74,6 +75,7 @@ import {
   type TriviaDisplayControl,
   type TriviaDisplayFinalResult,
   type TriviaDisplayState,
+  type TriviaHostCommentary,
   type TriviaHostRoster,
   type TriviaHostRosterMember,
   type TriviaHostRosterTeam,
@@ -159,6 +161,171 @@ function getTriviaNightTitle() {
   }).format(new Date());
 
   return `${day} Night Trivia`;
+}
+
+
+function HostCommentaryPanel({
+  question,
+  phase,
+}: {
+  question: TriviaState['question'];
+  phase: TriviaState['phase'];
+}) {
+  const [commentary, setCommentary] = useState<TriviaHostCommentary | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
+
+  const questionId = question?.id ?? '';
+
+  const loadCommentary = useCallback(async (forceRefresh = false) => {
+    if (!questionId) {
+      setCommentary(null);
+      setError('');
+      return;
+    }
+
+    if (forceRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+      setCommentary(null);
+    }
+
+    setError('');
+
+    try {
+      const next = await getTriviaHostCommentary(questionId, forceRefresh);
+      setCommentary(next);
+    } catch (nextError) {
+      setError(getErrorMessage(nextError));
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [questionId]);
+
+  useEffect(() => {
+    if (!questionId) {
+      setCommentary(null);
+      setError('');
+      return;
+    }
+
+    void loadCommentary(false);
+  }, [loadCommentary, questionId]);
+
+  if (!question || phase === 'lobby' || phase === 'scoreboard' || phase === 'finished') {
+    return null;
+  }
+
+  const revealed = phase === 'reveal';
+
+  return (
+    <section className="host-panel host-commentary-panel">
+      <div className="host-panel__heading host-commentary-heading">
+        <div>
+          <span className="panel-kicker"><Sparkles size={11} /> HOST NOTES</span>
+          <h2>Commentary for this question</h2>
+          <small>Private host material generated specifically for the active question.</small>
+        </div>
+
+        <button
+          className="host-commentary-refresh"
+          type="button"
+          disabled={loading || refreshing}
+          onClick={() => void loadCommentary(true)}
+        >
+          <RefreshCw className={refreshing ? 'spin' : ''} size={13} />
+          {refreshing ? 'Regenerating…' : 'Regenerate'}
+        </button>
+      </div>
+
+      {error && (
+        <div className="runtime-message runtime-message--error host-commentary-error">
+          {error}
+        </div>
+      )}
+
+      {loading && !commentary ? (
+        <div className="host-commentary-loading">
+          <RefreshCw className="spin" size={15} />
+          <div>
+            <strong>Researching this question…</strong>
+            <span>Building safe host notes and reveal commentary.</span>
+          </div>
+        </div>
+      ) : commentary ? (
+        <>
+          <div className="host-commentary-question">
+            <span>ACTIVE QUESTION</span>
+            <strong>{question.prompt}</strong>
+          </div>
+
+          <div className="host-commentary-grid">
+            <article className="host-commentary-block">
+              <span className="host-commentary-label">BEFORE REVEAL</span>
+              <div className="host-commentary-list">
+                {commentary.beforeReveal.talkingPoints.map((item) => (
+                  <p key={item}>{item}</p>
+                ))}
+              </div>
+            </article>
+
+            <article className="host-commentary-block">
+              <span className="host-commentary-label">ROOM PROMPTS</span>
+              <div className="host-commentary-list host-commentary-list--prompts">
+                {commentary.beforeReveal.roomPrompts.map((item) => (
+                  <p key={item}>{item}</p>
+                ))}
+              </div>
+            </article>
+
+            <article className="host-commentary-block host-commentary-block--avoid">
+              <span className="host-commentary-label">AVOID SAYING</span>
+              <div className="host-commentary-list">
+                {commentary.avoidSaying.map((item) => (
+                  <p key={item}>{item}</p>
+                ))}
+              </div>
+            </article>
+          </div>
+
+          {revealed && (
+            <div className="host-commentary-after-reveal">
+              <div className="host-commentary-after-reveal__heading">
+                <Check size={14} />
+                <div>
+                  <span>ANSWER REVEALED</span>
+                  <strong>Now you can talk about the answer directly.</strong>
+                </div>
+              </div>
+
+              {commentary.afterReveal.revealLine && (
+                <p className="host-commentary-reveal-line">
+                  {commentary.afterReveal.revealLine}
+                </p>
+              )}
+
+              <div className="host-commentary-list">
+                {commentary.afterReveal.talkingPoints.map((item) => (
+                  <p key={item}>{item}</p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="host-commentary-footer">
+            <Sparkles size={12} />
+            <span>
+              {commentary.cached ? 'Cached commentary' : 'Fresh commentary'}
+              {commentary.sourceSummary ? ` · ${commentary.sourceSummary}` : ''}
+            </span>
+          </div>
+        </>
+      ) : null}
+    </section>
+  );
 }
 
 /* ==========================================================
@@ -763,6 +930,11 @@ function TriviaHostRuntime() {
 
               <LeaderboardPanel leaderboard={state.leaderboard} playerCount={state.playerCount} />
             </div>
+
+            <HostCommentaryPanel
+              question={question}
+              phase={state.phase}
+            />
 
             <LiveResponsePanel
               roster={hostRoster}
