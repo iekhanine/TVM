@@ -4744,3 +4744,29 @@ body {
     padding-right: 10px;
   }
 }
+
+
+/* ==========================================================
+   TRIVIA CSS 015 - DISCREET TVM MODULE LINK
+   Keeps product navigation available to hosts without turning
+   the sidebar into a catalog of modules.
+   ========================================================== */
+
+.trivia-module-link {
+  width: fit-content;
+  margin: 1px 0 0 8px;
+  padding: 2px 3px;
+  color: #505967;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-transform: uppercase;
+  opacity: 0.68;
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.trivia-module-link:hover {
+  color: #8994a5;
+  opacity: 1;
+}

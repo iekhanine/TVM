@@ -153,7 +153,6 @@ function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'Something went wrong.';
 }
 
-
 function getTriviaNightTitle() {
   const day = new Intl.DateTimeFormat('en-US', {
     weekday: 'long',
@@ -663,7 +662,7 @@ function TriviaHostRuntime() {
             <div><strong>{workspace?.venueName ?? 'TVM Venue'}</strong><span>{workspace?.organizationName ?? 'OneTime Labs'}</span></div>
             <ChevronDown size={14} />
           </div>
-          <Link className="trivia-nav__item" to="/"><ArrowLeft size={16} /><span>All TVM Modules</span></Link>
+          <Link className="trivia-module-link" to="/" aria-label="TVM modules">TVM</Link>
           <button className="trivia-nav__item" type="button" onClick={() => void signOutTriviaHost()}><LogOut size={16} /><span>Sign Out</span></button>
         </div>
       </aside>
