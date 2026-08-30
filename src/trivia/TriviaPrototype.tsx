@@ -153,6 +153,15 @@ function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'Something went wrong.';
 }
 
+
+function getTriviaNightTitle() {
+  const day = new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+  }).format(new Date());
+
+  return `${day} Night Trivia`;
+}
+
 /* ==========================================================
    TRIVIA 002 - SHARED BRAND / VIEW SWITCHER
    ========================================================== */
@@ -163,7 +172,7 @@ function TriviaBrand() {
       <span className="trivia-brand__mark">TVM</span>
       <span className="trivia-brand__name">
         <strong>Trivia</strong>
-        <small>Television Venue Media</small>
+        <small>OneTime Labs: TVM</small>
       </span>
     </div>
   );
@@ -180,15 +189,32 @@ function PrototypeSwitcher({
 
   return (
     <div className="prototype-switcher">
-      <Link className={current === 'host' ? 'is-active' : ''} to="/trivia">
-        <Gauge size={13} /> Host
-      </Link>
-      <Link className={current === 'display' ? 'is-active' : ''} to={`/trivia/display${query}`}>
-        <Monitor size={13} /> TV
-      </Link>
-      <Link className={current === 'player' ? 'is-active' : ''} to={`/trivia/play${query}`}>
-        <Smartphone size={13} /> Player
-      </Link>
+      <Link
+  className={current === 'host' ? 'is-active' : ''}
+  to="/trivia"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  <Gauge size={13} /> Host
+</Link>
+
+<Link
+  className={current === 'display' ? 'is-active' : ''}
+  to={`/trivia/display${query}`}
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  <Monitor size={13} /> TV
+</Link>
+
+<Link
+  className={current === 'player' ? 'is-active' : ''}
+  to={`/trivia/play${query}`}
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  <Smartphone size={13} /> Player
+</Link>
     </div>
   );
 }
@@ -462,7 +488,7 @@ function TriviaHostRuntime() {
     setBusy(true);
     setHostError('');
     try {
-      const created = await createStarterTriviaSession(workspace.venueId, 'Saturday Night Trivia');
+      const created = await createStarterTriviaSession(workspace.venueId, getTriviaNightTitle());
       setJoinCode(created.joinCode);
       setHostSession({
         id: created.sessionId,
@@ -645,11 +671,11 @@ function TriviaHostRuntime() {
       <main className="trivia-host-main">
         <header className="trivia-host-header">
           <div>
-            <span className="eyebrow"><Radio size={12} /> {hostSection === 'live' ? (state ? 'Live Supabase Session' : 'Trivia Host') : 'Trivia Host'}</span>
+            <span className="eyebrow"><Radio size={12} /> {hostSection === 'live' ? (state ? 'Live Session' : 'Trivia Host') : 'Trivia Host'}</span>
             <h1>{hostSection === 'library' ? 'Question Library' : hostSection === 'games' ? 'Games' : hostSection === 'results' ? 'Results' : (state?.title ?? 'TVM Trivia')}</h1>
           </div>
           <div className="trivia-host-header__actions">
-            <span className="prototype-pill runtime-live-pill"><Wifi size={12} /> Supabase Live</span>
+            <span className="prototype-pill runtime-live-pill"><Wifi size={12} />Live</span>
             <PrototypeSwitcher current="host" joinCode={joinCode} />
             <button className="icon-square" type="button" aria-label="Trivia settings"><Settings size={16} /></button>
           </div>
