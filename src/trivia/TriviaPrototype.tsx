@@ -1008,8 +1008,6 @@ function TriviaPlayerRuntime() {
 
   return (
     <div className="trivia-player-shell">
-      <div className="player-prototype-bar"><Link to="/trivia"><ArrowLeft size={14} /> Host</Link><PrototypeSwitcher current="player" joinCode={code} /></div>
-
       <main className="player-phone-wrap">
         <div className="player-phone">
           <header className="player-phone__header">
