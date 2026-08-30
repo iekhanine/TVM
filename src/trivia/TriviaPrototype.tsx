@@ -801,17 +801,51 @@ function TriviaDisplayRuntime() {
    ========================================================== */
 
 function TriviaPlayerRuntime() {
-  const locationCode = useCodeFromLocation();
+  const location = useLocation();
+
+  // An explicit ?code=#### in the URL always wins over any previously
+  // stored player session. This prevents a browser that played an older
+  // game from silently reopening that old game when a new QR/link is used.
+  const explicitCode = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    const queryCode = normalizeCode(params.get('code') ?? '');
+    return queryCode.length === 4 ? queryCode : '';
+  }, [location.search]);
+
+  const fallbackCode = useCodeFromLocation();
   const stored = useMemo(() => readStoredPlayerSession(), []);
-  const [code, setCode] = useState(stored?.joinCode ?? locationCode);
-  const [playerName, setPlayerName] = useState(stored?.nickname ?? '');
-  const [playerToken, setPlayerToken] = useState(stored?.playerToken ?? '');
+  const storedMatchesRequestedGame = !explicitCode || stored?.joinCode === explicitCode;
+  const initialCode = explicitCode || stored?.joinCode || fallbackCode;
+
+  const [code, setCode] = useState(initialCode);
+  const [playerName, setPlayerName] = useState(storedMatchesRequestedGame ? stored?.nickname ?? '' : stored?.nickname ?? '');
+  const [playerToken, setPlayerToken] = useState(storedMatchesRequestedGame ? stored?.playerToken ?? '' : '');
   const [playerContext, setPlayerContext] = useState<TriviaPlayerContext | null>(null);
   const [teams, setTeams] = useState<TriviaTeamSummary[]>([]);
   const [teamName, setTeamName] = useState('');
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (explicitCode.length !== 4) return;
+
+    setCode(explicitCode);
+    window.localStorage.setItem(LAST_GAME_CODE_KEY, explicitCode);
+
+    const currentStored = readStoredPlayerSession();
+    if (!currentStored || currentStored.joinCode === explicitCode) return;
+
+    // Preserve the person's nickname for convenience, but never carry a
+    // player token/team identity from one Trivia session into another.
+    setPlayerName((current) => current || currentStored.nickname || '');
+    clearStoredPlayerSession();
+    setPlayerToken('');
+    setPlayerContext(null);
+    setTeams([]);
+    setSelectedAnswer(null);
+    setError('');
+  }, [explicitCode]);
 
   const live = useTriviaState(playerToken ? code : '');
   const seconds = useCountdown(live.state?.answerDeadlineAt);
