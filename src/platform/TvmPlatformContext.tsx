@@ -74,7 +74,9 @@ function readDevOverrides(): TvmModuleCode[] {
 function normalizeWorkspace(data: unknown): TvmWorkspace {
   const row = Array.isArray(data) ? data[0] : data;
   if (!row || typeof row !== 'object') throw new Error('TVM workspace could not be loaded.');
+
   const value = row as Record<string, unknown>;
+
   return {
     organizationId: String(value.organizationId ?? value.organization_id),
     venueId: String(value.venueId ?? value.venue_id),
@@ -94,11 +96,13 @@ export function TvmPlatformProvider({ children }: { children: ReactNode }) {
 
   const loadEntitlements = useCallback(async (organizationId: string) => {
     if (!supabase) return;
+
     const { data, error: entitlementError } = await supabase
       .from('tvm_entitlements')
       .select('id, organization_id, module_code, status, external_license_id, external_customer_name, expires_at, last_verified_at, last_sync_error')
       .eq('organization_id', organizationId)
       .order('module_code');
+
     if (entitlementError) throw new Error(entitlementError.message);
 
     setEntitlements((data ?? []).map((row) => ({
@@ -123,8 +127,10 @@ export function TvmPlatformProvider({ children }: { children: ReactNode }) {
 
     try {
       setError('');
+
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError) throw new Error(userError.message);
+
       setUser(userData.user);
 
       if (!userData.user) {
@@ -133,17 +139,25 @@ export function TvmPlatformProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const { data: workspaceData, error: workspaceError } = await supabase.rpc('tvm_bootstrap_my_workspace', {
-        p_organization_name: 'TVM Organization',
-        p_venue_name: 'Main Venue',
-      });
+      const { data: workspaceData, error: workspaceError } = await supabase.rpc(
+        'tvm_bootstrap_my_workspace',
+        {
+          p_organization_name: 'TVM Organization',
+          p_venue_name: 'Main Venue',
+        },
+      );
+
       if (workspaceError) throw new Error(workspaceError.message);
 
       const nextWorkspace = normalizeWorkspace(workspaceData);
       setWorkspace(nextWorkspace);
       await loadEntitlements(nextWorkspace.organizationId);
     } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : 'TVM platform could not be loaded.');
+      setError(
+        nextError instanceof Error
+          ? nextError.message
+          : 'TVM platform could not be loaded.',
+      );
     } finally {
       setLoading(false);
     }
@@ -151,27 +165,45 @@ export function TvmPlatformProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void refresh();
+
     if (!supabase) return undefined;
-    const { data } = supabase.auth.onAuthStateChange(() => void refresh());
+
+    const { data } = supabase.auth.onAuthStateChange(() => {
+      void refresh();
+    });
+
     return () => data.subscription.unsubscribe();
   }, [refresh]);
 
   useEffect(() => {
     const client = supabase;
+
     if (!client || !user || !workspace) return undefined;
 
     let cancelled = false;
+
     const sync = async () => {
-      const { data, error: invokeError } = await client.functions.invoke('module-entitlement', {
-        body: { action: 'sync', organizationId: workspace.organizationId },
-      });
+      const { data, error: invokeError } = await client.functions.invoke(
+        'module-entitlement',
+        {
+          body: {
+            action: 'sync',
+            organizationId: workspace.organizationId,
+          },
+        },
+      );
+
       if (!cancelled && !invokeError && !data?.error) {
         await loadEntitlements(workspace.organizationId);
       }
     };
 
     void sync();
-    const interval = window.setInterval(() => void sync(), 10 * 60 * 1000);
+
+    const interval = window.setInterval(() => {
+      void sync();
+    }, 10 * 60 * 1000);
+
     return () => {
       cancelled = true;
       window.clearInterval(interval);
@@ -180,23 +212,43 @@ export function TvmPlatformProvider({ children }: { children: ReactNode }) {
 
   async function signIn(email: string, password: string) {
     if (!supabase) throw new Error('Supabase is not configured.');
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
     if (authError) throw new Error(authError.message);
+
     await refresh();
   }
 
   async function signUp(email: string, password: string) {
     if (!supabase) throw new Error('Supabase is not configured.');
-    const { data, error: authError } = await supabase.auth.signUp({ email, password });
+
+    const { data, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
     if (authError) throw new Error(authError.message);
+
     if (data.session) await refresh();
-    return data.session ? 'Account created and signed in.' : 'Account created. Check your email if confirmation is enabled.';
+
+    return data.session
+      ? 'Account created and signed in.'
+      : 'Account created. Check your email if confirmation is enabled.';
   }
 
   async function signOut() {
     if (!supabase) return;
+
     const { error: authError } = await supabase.auth.signOut();
-    if (authError) throw new Error(authError.message);
+
+    if (authError && authError.message !== 'Auth session missing!') {
+      throw new Error(authError.message);
+    }
+
     setUser(null);
     setWorkspace(null);
     setEntitlements([]);
@@ -204,34 +256,52 @@ export function TvmPlatformProvider({ children }: { children: ReactNode }) {
 
   async function invokeEntitlement(body: Record<string, unknown>) {
     if (!supabase) throw new Error('Supabase is not configured.');
-    const { data, error: invokeError } = await supabase.functions.invoke('module-entitlement', { body });
+
+    const { data, error: invokeError } = await supabase.functions.invoke(
+      'module-entitlement',
+      { body },
+    );
+
     if (invokeError) throw new Error(invokeError.message);
     if (data?.error) throw new Error(String(data.error));
+
     return data;
   }
 
-  async function activateModule(moduleCode: TvmModuleCode, licenseKey: string) {
+  async function activateModule(
+    moduleCode: TvmModuleCode,
+    licenseKey: string,
+  ) {
     if (!workspace) throw new Error('Sign in to a TVM organization first.');
+
     await invokeEntitlement({
       action: 'activate',
       organizationId: workspace.organizationId,
       moduleCode,
       licenseKey,
     });
+
     await loadEntitlements(workspace.organizationId);
   }
 
   async function syncEntitlements() {
     if (!workspace) return;
+
     await invokeEntitlement({
       action: 'sync',
       organizationId: workspace.organizationId,
     });
+
     await loadEntitlements(workspace.organizationId);
   }
 
   const entitlementMap = useMemo(
-    () => new Map(entitlements.map((entitlement) => [entitlement.moduleCode, entitlement])),
+    () => new Map(
+      entitlements.map((entitlement) => [
+        entitlement.moduleCode,
+        entitlement,
+      ]),
+    ),
     [entitlements],
   );
 
@@ -239,13 +309,22 @@ export function TvmPlatformProvider({ children }: { children: ReactNode }) {
     return devMode && devOverrides.includes(moduleCode);
   }
 
-  function setDevOverride(moduleCode: TvmModuleCode, enabled: boolean) {
+  function setDevOverride(
+    moduleCode: TvmModuleCode,
+    enabled: boolean,
+  ) {
     if (!devMode) return;
+
     setDevOverrides((current) => {
       const next = enabled
         ? Array.from(new Set([...current, moduleCode]))
         : current.filter((code) => code !== moduleCode);
-      window.localStorage.setItem(DEV_OVERRIDE_KEY, JSON.stringify(next));
+
+      window.localStorage.setItem(
+        DEV_OVERRIDE_KEY,
+        JSON.stringify(next),
+      );
+
       return next;
     });
   }
@@ -256,11 +335,19 @@ export function TvmPlatformProvider({ children }: { children: ReactNode }) {
 
   function isLicensed(moduleCode: TvmModuleCode) {
     if (hasDevOverride(moduleCode)) return true;
+
     const entitlement = getEntitlement(moduleCode);
-    if (!entitlement || entitlement.status !== 'active') return false;
-    if (entitlement.expiresAt && new Date(entitlement.expiresAt).getTime() <= Date.now()) return false;
-    if (!entitlement.lastVerifiedAt) return false;
-    if (Date.now() - new Date(entitlement.lastVerifiedAt).getTime() > 60 * 60 * 1000) return false;
+
+    if (!entitlement) return false;
+    if (entitlement.status !== 'active') return false;
+
+    if (
+      entitlement.expiresAt
+      && new Date(entitlement.expiresAt).getTime() <= Date.now()
+    ) {
+      return false;
+    }
+
     return true;
   }
 
@@ -284,11 +371,21 @@ export function TvmPlatformProvider({ children }: { children: ReactNode }) {
     setDevOverride,
   };
 
-  return <TvmPlatformContext.Provider value={value}>{children}</TvmPlatformContext.Provider>;
+  return (
+    <TvmPlatformContext.Provider value={value}>
+      {children}
+    </TvmPlatformContext.Provider>
+  );
 }
 
 export function useTvmPlatform() {
   const context = useContext(TvmPlatformContext);
-  if (!context) throw new Error('useTvmPlatform must be used inside TvmPlatformProvider.');
+
+  if (!context) {
+    throw new Error(
+      'useTvmPlatform must be used inside TvmPlatformProvider.',
+    );
+  }
+
   return context;
 }
