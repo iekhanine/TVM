@@ -50,6 +50,8 @@ import {
   endTriviaSession,
   getCurrentHostUser,
   getLatestTriviaSession,
+  getTriviaDisplayControl,
+  getTriviaDisplayState,
   getTriviaHostRoster,
   getTriviaPlayerContext,
   getTriviaState,
@@ -60,6 +62,8 @@ import {
   nextTriviaQuestion,
   onHostAuthChanged,
   revealTriviaAnswer,
+  resolveTriviaDisplayVenue,
+  setTriviaDisplayMode,
   showTriviaScoreboard,
   signInTriviaHost,
   signOutTriviaHost,
@@ -67,6 +71,8 @@ import {
   startTriviaSession,
   subscribeTriviaSignals,
   type HostSessionSummary,
+  type TriviaDisplayControl,
+  type TriviaDisplayState,
   type TriviaHostRoster,
   type TriviaLeaderboardRow,
   type TriviaPlayerContext,
@@ -350,6 +356,7 @@ function TriviaHostRuntime() {
   const [hostSection, setHostSection] = useState<HostSection>('live');
   const [hostRoster, setHostRoster] = useState<TriviaHostRoster | null>(null);
   const [hostRosterError, setHostRosterError] = useState('');
+  const [displayControl, setDisplayControl] = useState<TriviaDisplayControl | null>(null);
 
   const live = useTriviaState(joinCode);
   const seconds = useCountdown(live.state?.answerDeadlineAt);
@@ -380,6 +387,7 @@ function TriviaHostRuntime() {
       if (!nextUser) {
         setWorkspace(null);
         setHostSession(null);
+        setDisplayControl(null);
         setJoinCode('');
         return;
       }
@@ -387,8 +395,12 @@ function TriviaHostRuntime() {
       const nextWorkspace = await bootstrapTriviaWorkspace();
       setWorkspace(nextWorkspace);
 
-      const nextSession = await getLatestTriviaSession(nextWorkspace.venueId);
+      const [nextSession, nextDisplayControl] = await Promise.all([
+        getLatestTriviaSession(nextWorkspace.venueId),
+        getTriviaDisplayControl(nextWorkspace.venueId),
+      ]);
       setHostSession(nextSession);
+      setDisplayControl(nextDisplayControl);
 
       const nextCode = normalizeCode(nextSession?.join_code ?? '');
       setJoinCode(nextCode);
@@ -458,12 +470,28 @@ function TriviaHostRuntime() {
       window.localStorage.setItem(LAST_GAME_CODE_KEY, created.joinCode);
       const createdState = await getTriviaState(created.joinCode);
       live.setState(createdState);
+      const nextDisplayControl = await setTriviaDisplayMode(
+        workspace.venueId,
+        'session',
+        created.sessionId,
+      );
+      setDisplayControl(nextDisplayControl);
       await broadcastTriviaSignal(created.joinCode);
     } catch (error) {
       setHostError(getErrorMessage(error));
     } finally {
       setBusy(false);
     }
+  }
+
+  async function clearEndedHostSession(endedCode: string) {
+    setHostSession(null);
+    setJoinCode('');
+    setHostRoster(null);
+    setHostRosterError('');
+    live.setState(null);
+    window.localStorage.removeItem(LAST_GAME_CODE_KEY);
+    await broadcastTriviaSignal(endedCode);
   }
 
   async function hostAction(action: 'start' | 'reveal' | 'scoreboard' | 'next' | 'end') {
@@ -483,20 +511,72 @@ function TriviaHostRuntime() {
               ? await nextTriviaQuestion(sessionId)
               : await endTriviaSession(sessionId);
 
-      if (action === 'end') {
-        const endedCode = joinCode;
-        await broadcastTriviaSignal(endedCode);
-        setHostSession(null);
-        setJoinCode('');
-        setHostRoster(null);
-        setHostRosterError('');
-        live.setState(null);
-        window.localStorage.removeItem(LAST_GAME_CODE_KEY);
+      if (action === 'end' || nextState.phase === 'finished') {
+        if (workspace) {
+          const nextDisplayControl = await setTriviaDisplayMode(
+            workspace.venueId,
+            'waiting',
+            sessionId,
+          );
+          setDisplayControl(nextDisplayControl);
+        }
+
+        await clearEndedHostSession(joinCode);
         return;
       }
 
       live.setState(nextState);
       await broadcastTriviaSignal(joinCode);
+    } catch (error) {
+      setHostError(getErrorMessage(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function showPreviousFinalOnTv() {
+    if (!workspace || !displayControl?.previousSessionId) return;
+
+    setBusy(true);
+    setHostError('');
+    try {
+      const nextControl = await setTriviaDisplayMode(
+        workspace.venueId,
+        'final',
+        displayControl.previousSessionId,
+      );
+      setDisplayControl(nextControl);
+    } catch (error) {
+      setHostError(getErrorMessage(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function showCurrentGameOnTv() {
+    const sessionId = live.state?.sessionId ?? hostSession?.id;
+    if (!workspace || !sessionId) return;
+
+    setBusy(true);
+    setHostError('');
+    try {
+      const nextControl = await setTriviaDisplayMode(workspace.venueId, 'session', sessionId);
+      setDisplayControl(nextControl);
+    } catch (error) {
+      setHostError(getErrorMessage(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function showWaitingOnTv() {
+    if (!workspace) return;
+
+    setBusy(true);
+    setHostError('');
+    try {
+      const nextControl = await setTriviaDisplayMode(workspace.venueId, 'waiting');
+      setDisplayControl(nextControl);
     } catch (error) {
       setHostError(getErrorMessage(error));
     } finally {
@@ -584,9 +664,16 @@ function TriviaHostRuntime() {
             <span className="panel-kicker">DATABASE CONNECTED</span>
             <h2>No live Trivia session.</h2>
             <p>Create a starter session using the TVM Starter Trivia pack. It will generate a real four-digit join code in Supabase.</p>
-            <button className="control-button control-button--primary" type="button" disabled={busy} onClick={() => void createGame()}>
-              {busy ? <RefreshCw className="spin" size={15} /> : <Plus size={15} />} Create Starter Game
-            </button>
+            <div className="runtime-empty-actions">
+              <button className="control-button control-button--primary" type="button" disabled={busy} onClick={() => void createGame()}>
+                {busy ? <RefreshCw className="spin" size={15} /> : <Plus size={15} />} Create Starter Game
+              </button>
+              {displayControl?.previousSessionId && (
+                <button className="control-button control-button--quiet" type="button" disabled={busy} onClick={() => void showPreviousFinalOnTv()}>
+                  <Trophy size={15} /> Show Previous Final Score on TV
+                </button>
+              )}
+            </div>
           </section>
         ) : (
           <>
@@ -653,7 +740,17 @@ function TriviaHostRuntime() {
               error={hostRosterError}
             />
 
-            <SessionAccessPanel joinCode={state.joinCode} />
+            {workspace && (
+              <SessionAccessPanel
+                joinCode={state.joinCode}
+                venueId={workspace.venueId}
+                displayControl={displayControl}
+                busy={busy}
+                onShowCurrent={() => void showCurrentGameOnTv()}
+                onShowPrevious={() => void showPreviousFinalOnTv()}
+                onShowWaiting={() => void showWaitingOnTv()}
+              />
+            )}
 
           </>
         )}
@@ -833,8 +930,24 @@ function LiveResponsePanel({
   );
 }
 
-function SessionAccessPanel({ joinCode }: { joinCode: string }) {
-  const displayUrl = `${window.location.origin}/trivia/display?code=${joinCode}`;
+function SessionAccessPanel({
+  joinCode,
+  venueId,
+  displayControl,
+  busy,
+  onShowCurrent,
+  onShowPrevious,
+  onShowWaiting,
+}: {
+  joinCode: string;
+  venueId: string;
+  displayControl: TriviaDisplayControl | null;
+  busy: boolean;
+  onShowCurrent: () => void;
+  onShowPrevious: () => void;
+  onShowWaiting: () => void;
+}) {
+  const displayUrl = `${window.location.origin}/trivia/display?venue=${venueId}`;
   const playerUrl = `${window.location.origin}/trivia/play?code=${joinCode}`;
 
   function copy(value: string) {
@@ -847,7 +960,7 @@ function SessionAccessPanel({ joinCode }: { joinCode: string }) {
         <div className="session-access-drawer__title">
           <span className="panel-kicker">SESSION ACCESS</span>
           <strong>TV display, player link & QR code</strong>
-          <small>Open this drawer when you need to connect a screen or share the game.</small>
+          <small>The TV URL is permanent for this venue. New games appear there automatically.</small>
         </div>
 
         <div className="session-access-drawer__meta">
@@ -860,14 +973,47 @@ function SessionAccessPanel({ joinCode }: { joinCode: string }) {
       </summary>
 
       <div className="session-access-drawer__body">
+        <div className="session-display-control">
+          <div>
+            <span className="panel-kicker">TV DISPLAY CONTROL</span>
+            <strong>Choose what the venue television is showing.</strong>
+          </div>
+          <div className="session-display-control__actions">
+            <button
+              className={displayControl?.mode === 'session' ? 'is-active' : ''}
+              type="button"
+              disabled={busy}
+              onClick={onShowCurrent}
+            >
+              <Monitor size={14} /> Current Game
+            </button>
+            <button
+              className={displayControl?.mode === 'final' ? 'is-active' : ''}
+              type="button"
+              disabled={busy || !displayControl?.previousSessionId}
+              onClick={onShowPrevious}
+            >
+              <Trophy size={14} /> Previous Final Score
+            </button>
+            <button
+              className={displayControl?.mode === 'waiting' ? 'is-active' : ''}
+              type="button"
+              disabled={busy}
+              onClick={onShowWaiting}
+            >
+              <Clock3 size={14} /> Waiting Screen
+            </button>
+          </div>
+        </div>
+
         <div className="session-access-grid">
           <article className="session-access-card">
             <div className="session-access-card__icon"><Monitor size={19} /></div>
             <div className="session-access-card__copy">
               <span>TV DISPLAY URL</span>
-              <strong>Question Screen</strong>
+              <strong>Permanent Venue Display</strong>
               <code>{displayUrl}</code>
-              <small>Open this URL on the venue TV, projector, Fire TV browser, or display computer.</small>
+              <small>Open this once on the venue TV. It follows new games automatically.</small>
             </div>
             <div className="session-access-actions">
               <a href={displayUrl} target="_blank" rel="noreferrer">Open TV Display <ArrowRight size={14} /></a>
@@ -881,7 +1027,7 @@ function SessionAccessPanel({ joinCode }: { joinCode: string }) {
               <span>PLAYER URL</span>
               <strong>Mobile Player</strong>
               <code>{playerUrl}</code>
-              <small>Send this link directly to players or have them scan the QR code.</small>
+              <small>Player links remain specific to the current four-digit game code.</small>
             </div>
             <div className="session-access-actions">
               <a href={playerUrl} target="_blank" rel="noreferrer">Open Player <ArrowRight size={14} /></a>
@@ -950,22 +1096,183 @@ function LeaderboardPanel({ leaderboard, playerCount }: { leaderboard: TriviaLea
    ========================================================== */
 
 function TriviaDisplayRuntime() {
-  const initialCode = useCodeFromLocation();
-  const [code, setCode] = useState(initialCode);
-  const [entry, setEntry] = useState(initialCode);
-  const live = useTriviaState(code);
-  const seconds = useCountdown(live.state?.answerDeadlineAt);
-  const state = live.state;
+  const location = useLocation();
+  const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const requestedVenue = params.get('venue')?.trim() ?? '';
+  const requestedCode = normalizeCode(params.get('code') ?? '');
 
-  if (!code || !state) {
+  const [venueId, setVenueId] = useState(requestedVenue);
+  const [entry, setEntry] = useState(requestedCode);
+  const [displayState, setDisplayState] = useState<TriviaDisplayState | null>(null);
+  const [loading, setLoading] = useState(Boolean(requestedVenue || requestedCode));
+  const [error, setError] = useState('');
+  const seconds = useCountdown(displayState?.state?.answerDeadlineAt);
+
+  const refreshDisplay = useCallback(async (nextVenueId = venueId) => {
+    if (!nextVenueId) return;
+
+    try {
+      const next = await getTriviaDisplayState(nextVenueId);
+      setDisplayState(next);
+      setError(next ? '' : 'This venue display could not be found.');
+    } catch (nextError) {
+      setError(getErrorMessage(nextError));
+    } finally {
+      setLoading(false);
+    }
+  }, [venueId]);
+
+  useEffect(() => {
+    if (requestedVenue) {
+      setVenueId(requestedVenue);
+      return;
+    }
+
+    if (requestedCode.length !== 4 || venueId) return;
+
+    let cancelled = false;
+    setLoading(true);
+    void resolveTriviaDisplayVenue(requestedCode)
+      .then((resolvedVenue) => {
+        if (cancelled) return;
+        if (!resolvedVenue) {
+          setError('No Trivia venue was found for that game code.');
+          setLoading(false);
+          return;
+        }
+
+        setVenueId(resolvedVenue);
+        window.history.replaceState({}, '', `/trivia/display?venue=${resolvedVenue}`);
+      })
+      .catch((nextError) => {
+        if (!cancelled) {
+          setError(getErrorMessage(nextError));
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [requestedCode, requestedVenue, venueId]);
+
+  useEffect(() => {
+    if (!venueId) return undefined;
+
+    void refreshDisplay(venueId);
+    const interval = window.setInterval(() => {
+      void refreshDisplay(venueId);
+    }, 2000);
+
+    return () => window.clearInterval(interval);
+  }, [refreshDisplay, venueId]);
+
+  async function connectDisplay() {
+    if (entry.length !== 4) return;
+
+    setLoading(true);
+    setError('');
+    try {
+      const resolvedVenue = await resolveTriviaDisplayVenue(entry);
+      if (!resolvedVenue) {
+        setError('No Trivia venue was found for that game code.');
+        setLoading(false);
+        return;
+      }
+
+      setVenueId(resolvedVenue);
+      window.history.replaceState({}, '', `/trivia/display?venue=${resolvedVenue}`);
+    } catch (nextError) {
+      setError(getErrorMessage(nextError));
+      setLoading(false);
+    }
+  }
+
+  if (!venueId) {
     return (
       <div className="trivia-display-shell">
         <main className="runtime-display-code-entry">
           <span>CONNECT DISPLAY</span>
           <h1>Enter the Trivia game code.</h1>
           <input inputMode="numeric" maxLength={4} value={entry} onChange={(event) => setEntry(normalizeCode(event.target.value))} />
-          {live.error && <div className="runtime-message runtime-message--error">{live.error}</div>}
-          <button type="button" disabled={entry.length !== 4} onClick={() => setCode(entry)}>Connect Display</button>
+          {error && <div className="runtime-message runtime-message--error">{error}</div>}
+          <button type="button" disabled={entry.length !== 4 || loading} onClick={() => void connectDisplay()}>
+            {loading ? 'Connecting…' : 'Connect Display'}
+          </button>
+        </main>
+      </div>
+    );
+  }
+
+  if (loading && !displayState) {
+    return <RuntimeLoading message="Connecting venue display…" />;
+  }
+
+  if (!displayState) {
+    return (
+      <div className="trivia-display-shell">
+        <main className="trivia-display-stage">
+          <section className="display-waiting-screen">
+            <span className="display-round-kicker">DISPLAY UNAVAILABLE</span>
+            <h1>Unable to load this display.</h1>
+            <p>{error || 'Check the venue display link and try again.'}</p>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  if (displayState.mode === 'waiting' || !displayState.state && displayState.mode !== 'final') {
+    return (
+      <div className="trivia-display-shell">
+        <main className="trivia-display-stage">
+          <section className="display-waiting-screen">
+            <span className="display-round-kicker">TRIVIA DISPLAY READY</span>
+            <h1>Waiting for the next game.</h1>
+            <p>{displayState.venue}</p>
+            <div className="display-waiting-pulse"><Wifi size={26} /></div>
+            <small>The next game code will appear here automatically when the host creates a new session.</small>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  if (displayState.mode === 'final' && displayState.finalResult) {
+    const result = displayState.finalResult;
+    return (
+      <div className="trivia-display-shell">
+        <main className="trivia-display-stage">
+          <section className="display-scoreboard-screen display-scoreboard-screen--final">
+            <span className="display-round-kicker">FINAL STANDINGS</span>
+            <h1>{result.title || 'Final Scores'}</h1>
+            {result.winner && (
+              <div className="display-final-winner">
+                <Trophy size={28} />
+                <div><span>WINNER</span><strong>{result.winner.name}</strong></div>
+                <b>{result.winner.score.toLocaleString()}</b>
+              </div>
+            )}
+            <div className="display-scoreboard-list">
+              {result.leaderboard.slice(0, 8).map((team) => (
+                <div key={team.id}><span>{team.rank}</span><strong>{team.name}</strong><small>{team.members} members</small><b>{team.score.toLocaleString()}</b></div>
+              ))}
+            </div>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  const state = displayState.state;
+  if (!state) {
+    return (
+      <div className="trivia-display-shell">
+        <main className="trivia-display-stage">
+          <section className="display-waiting-screen">
+            <span className="display-round-kicker">TRIVIA DISPLAY READY</span>
+            <h1>Waiting for the next game.</h1>
+          </section>
         </main>
       </div>
     );
@@ -973,7 +1280,7 @@ function TriviaDisplayRuntime() {
 
   const question = state.question;
   const reveal = state.phase === 'reveal';
-  const scoreboard = state.phase === 'scoreboard' || state.phase === 'finished';
+  const scoreboard = state.phase === 'scoreboard';
 
   return (
     <div className="trivia-display-shell">
@@ -1029,7 +1336,7 @@ function TriviaDisplayRuntime() {
         {scoreboard && (
           <section className="display-scoreboard-screen">
             <span className="display-round-kicker">STANDINGS</span>
-            <h1>{state.phase === 'finished' ? 'Final Scores' : 'Leaderboard'}</h1>
+            <h1>Leaderboard</h1>
             <div className="display-scoreboard-list">
               {state.leaderboard.slice(0, 5).map((team) => (
                 <div key={team.id}><span>{team.rank}</span><strong>{team.name}</strong><small>{team.members} members</small><b>{team.score.toLocaleString()}</b></div>

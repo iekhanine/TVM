@@ -149,6 +149,94 @@ export type HostSessionSummary = {
   created_at: string;
 };
 
+export type TriviaHostRosterMember = {
+  id: string;
+  nickname: string;
+  isCaptain: boolean;
+  status: string;
+  lastSeenAt: string;
+  isOnline: boolean;
+  hasVoted: boolean;
+};
+
+export type TriviaHostRosterTeam = {
+  id: string;
+  name: string;
+  score: number;
+  rank: number;
+  memberCount: number;
+  maxMembers: number;
+  votedCount: number;
+  locked: boolean;
+  lockedAt: string | null;
+  lockedByPlayerId: string | null;
+  lockedByNickname: string | null;
+  members: TriviaHostRosterMember[];
+};
+
+export type TriviaHostRoster = {
+  sessionId: string;
+  currentQuestionId: string | null;
+  totalPlayers: number;
+  totalTeams: number;
+  lockedTeams: number;
+  votedPlayers: number;
+  teams: TriviaHostRosterTeam[];
+  unassignedPlayers: TriviaHostRosterMember[];
+};
+
+
+
+export type TriviaDisplayMode = 'waiting' | 'session' | 'final';
+
+export type TriviaDisplayControl = {
+  venueId: string;
+  mode: TriviaDisplayMode;
+  sessionId: string | null;
+  previousSessionId: string | null;
+  previousTitle: string | null;
+  previousJoinCode: string | null;
+  previousEndedAt: string | null;
+  updatedAt: string | null;
+};
+
+export type TriviaDisplayFinalResult = {
+  sessionId: string;
+  venueId: string;
+  title: string;
+  joinCode: string;
+  status: string;
+  startedAt: string | null;
+  endedAt: string | null;
+  durationSeconds: number | null;
+  teamCount: number;
+  playerCount: number;
+  questionCount: number;
+  answerCount: number;
+  correctAnswerCount: number;
+  accuracyPercent: number;
+  winner: {
+    teamId: string;
+    name: string;
+    score: number;
+  } | null;
+  leaderboard: Array<TriviaLeaderboardRow & {
+    correctAnswers?: number;
+    answers?: number;
+    accuracyPercent?: number;
+  }>;
+};
+
+export type TriviaDisplayState = {
+  mode: TriviaDisplayMode;
+  venueId: string;
+  venue: string;
+  state: TriviaState | null;
+  finalResult: TriviaDisplayFinalResult | null;
+  previousSessionId: string | null;
+  previousAvailable: boolean;
+  updatedAt: string | null;
+};
 /* ==========================================================
    TRIVIA SERVICE 002 - CLIENT GUARD / ERROR NORMALIZATION
    ========================================================== */
@@ -312,6 +400,67 @@ export async function endTriviaSession(sessionId: string) {
   return callHostStateRpc('tvm_host_end_trivia_session', sessionId);
 }
 
+
+
+/* ==========================================================
+   TRIVIA SERVICE 004B - VENUE TV DISPLAY CONTROL
+   The television uses one stable venue URL and follows whatever
+   the host chooses to display: current session, waiting screen,
+   or the previous game's final standings.
+   ========================================================== */
+
+export async function getTriviaDisplayControl(
+  venueId: string,
+): Promise<TriviaDisplayControl> {
+  const client = requireSupabase();
+  const { data, error } = await client.rpc('tvm_get_trivia_display_control', {
+    p_venue_id: venueId,
+  });
+
+  if (error) throw new Error(error.message);
+  return unwrapRpcObject<TriviaDisplayControl>(data);
+}
+
+export async function setTriviaDisplayMode(
+  venueId: string,
+  mode: TriviaDisplayMode,
+  sessionId: string | null = null,
+): Promise<TriviaDisplayControl> {
+  const client = requireSupabase();
+  const { data, error } = await client.rpc('tvm_set_trivia_display_mode', {
+    p_venue_id: venueId,
+    p_mode: mode,
+    p_session_id: sessionId,
+  });
+
+  if (error) throw new Error(error.message);
+  return unwrapRpcObject<TriviaDisplayControl>(data);
+}
+
+export async function getTriviaDisplayState(
+  venueId: string,
+): Promise<TriviaDisplayState | null> {
+  const client = requireSupabase();
+  const { data, error } = await client.rpc('tvm_get_trivia_display_state', {
+    p_venue_id: venueId,
+  });
+
+  if (error) throw new Error(error.message);
+  return data as TriviaDisplayState | null;
+}
+
+export async function resolveTriviaDisplayVenue(
+  joinCode: string,
+): Promise<string | null> {
+  const client = requireSupabase();
+  const { data, error } = await client.rpc('tvm_resolve_trivia_display_venue', {
+    p_join_code: joinCode,
+  });
+
+  if (error) throw new Error(error.message);
+  return typeof data === 'string' ? data : null;
+}
+
 /* ==========================================================
    TRIVIA SERVICE 005 - PUBLIC GAME STATE
    Safe state comes only from the SECURITY DEFINER RPC.
@@ -325,6 +474,18 @@ export async function getTriviaState(joinCode: string): Promise<TriviaState | nu
 
   if (error) throw new Error(error.message);
   return data as TriviaState | null;
+}
+
+export async function getTriviaHostRoster(
+  sessionId: string,
+): Promise<TriviaHostRoster | null> {
+  const client = requireSupabase();
+  const { data, error } = await client.rpc('tvm_get_trivia_host_roster', {
+    p_session_id: sessionId,
+  });
+
+  if (error) throw new Error(error.message);
+  return data as TriviaHostRoster | null;
 }
 
 /* ==========================================================
@@ -450,8 +611,6 @@ export async function lockTriviaTeamAnswer(
   return data as {
     answerId: string;
     locked: boolean;
-    isCorrect: boolean;
-    pointsAwarded: number;
   };
 }
 
@@ -839,4 +998,219 @@ export async function deleteTriviaLibraryQuestion(questionId: string) {
 
   if (error) throw new Error(error.message);
   return Boolean(data);
+}
+
+/* ==========================================================
+   TRIVIA SERVICE 010 - RESULTS / HISTORICAL REPORTING
+   Backed by migration 004 RPCs:
+   - tvm_list_trivia_results
+   - tvm_get_trivia_result
+   ========================================================== */
+
+export type TriviaResultsSummary = {
+  gamesPlayed: number;
+  teamsHosted: number;
+  playersHosted: number;
+  averageAccuracy: number;
+};
+
+export type TriviaResultListItem = {
+  sessionId: string;
+  title: string;
+  joinCode: string;
+  startedAt: string | null;
+  endedAt: string | null;
+  durationSeconds: number | null;
+  teamCount: number;
+  playerCount: number;
+  questionCount: number;
+  accuracyPercent: number;
+  winnerName: string | null;
+  winnerScore: number | null;
+};
+
+export type TriviaResultsPayload = {
+  summary: TriviaResultsSummary;
+  results: TriviaResultListItem[];
+};
+
+export type TriviaResultLeaderboardRow = {
+  rank: number;
+  id: string;
+  name: string;
+  score: number;
+  members: number;
+  correctAnswers: number;
+  answers: number;
+  accuracyPercent: number;
+};
+
+export type TriviaResultQuestion = {
+  questionNumber: number;
+  questionId: string | null;
+  prompt: string;
+  category: string;
+  difficulty: string;
+  points: number;
+  correctAnswer: string | null;
+  explanation: string | null;
+  shownAt: string | null;
+  teamsAnswered: number;
+  teamsCorrect: number;
+  accuracyPercent: number;
+  averagePoints: number;
+};
+
+export type TriviaResultDetail = {
+  sessionId: string;
+  venueId: string;
+  title: string;
+  joinCode: string;
+  status: string;
+  startedAt: string | null;
+  endedAt: string | null;
+  durationSeconds: number | null;
+  teamCount: number;
+  playerCount: number;
+  questionCount: number;
+  answerCount: number;
+  correctAnswerCount: number;
+  accuracyPercent: number;
+  winner: {
+    teamId: string;
+    name: string;
+    score: number;
+  } | null;
+  leaderboard: TriviaResultLeaderboardRow[];
+  questions: TriviaResultQuestion[];
+};
+
+function normalizeTriviaResultsPayload(data: unknown): TriviaResultsPayload {
+  const raw = unwrapRpcObject<Record<string, unknown>>(data);
+  const summary = (raw.summary ?? {}) as Record<string, unknown>;
+  const results = Array.isArray(raw.results) ? raw.results : [];
+
+  return {
+    summary: {
+      gamesPlayed: Number(summary.gamesPlayed ?? 0),
+      teamsHosted: Number(summary.teamsHosted ?? 0),
+      playersHosted: Number(summary.playersHosted ?? 0),
+      averageAccuracy: Number(summary.averageAccuracy ?? 0),
+    },
+    results: results.map((row) => {
+      const item = row as Record<string, unknown>;
+      return {
+        sessionId: String(item.sessionId ?? ''),
+        title: String(item.title ?? 'TVM Trivia'),
+        joinCode: String(item.joinCode ?? ''),
+        startedAt: item.startedAt ? String(item.startedAt) : null,
+        endedAt: item.endedAt ? String(item.endedAt) : null,
+        durationSeconds: item.durationSeconds === null || item.durationSeconds === undefined
+          ? null
+          : Number(item.durationSeconds),
+        teamCount: Number(item.teamCount ?? 0),
+        playerCount: Number(item.playerCount ?? 0),
+        questionCount: Number(item.questionCount ?? 0),
+        accuracyPercent: Number(item.accuracyPercent ?? 0),
+        winnerName: item.winnerName ? String(item.winnerName) : null,
+        winnerScore: item.winnerScore === null || item.winnerScore === undefined
+          ? null
+          : Number(item.winnerScore),
+      } satisfies TriviaResultListItem;
+    }),
+  };
+}
+
+function normalizeTriviaResultDetail(data: unknown): TriviaResultDetail {
+  const raw = unwrapRpcObject<Record<string, unknown>>(data);
+  const winnerRaw = raw.winner && typeof raw.winner === 'object'
+    ? raw.winner as Record<string, unknown>
+    : null;
+  const leaderboardRaw = Array.isArray(raw.leaderboard) ? raw.leaderboard : [];
+  const questionsRaw = Array.isArray(raw.questions) ? raw.questions : [];
+
+  return {
+    sessionId: String(raw.sessionId ?? ''),
+    venueId: String(raw.venueId ?? ''),
+    title: String(raw.title ?? 'TVM Trivia'),
+    joinCode: String(raw.joinCode ?? ''),
+    status: String(raw.status ?? 'completed'),
+    startedAt: raw.startedAt ? String(raw.startedAt) : null,
+    endedAt: raw.endedAt ? String(raw.endedAt) : null,
+    durationSeconds: raw.durationSeconds === null || raw.durationSeconds === undefined
+      ? null
+      : Number(raw.durationSeconds),
+    teamCount: Number(raw.teamCount ?? 0),
+    playerCount: Number(raw.playerCount ?? 0),
+    questionCount: Number(raw.questionCount ?? 0),
+    answerCount: Number(raw.answerCount ?? 0),
+    correctAnswerCount: Number(raw.correctAnswerCount ?? 0),
+    accuracyPercent: Number(raw.accuracyPercent ?? 0),
+    winner: winnerRaw
+      ? {
+          teamId: String(winnerRaw.teamId ?? ''),
+          name: String(winnerRaw.name ?? ''),
+          score: Number(winnerRaw.score ?? 0),
+        }
+      : null,
+    leaderboard: leaderboardRaw.map((row) => {
+      const item = row as Record<string, unknown>;
+      return {
+        rank: Number(item.rank ?? 0),
+        id: String(item.id ?? ''),
+        name: String(item.name ?? ''),
+        score: Number(item.score ?? 0),
+        members: Number(item.members ?? 0),
+        correctAnswers: Number(item.correctAnswers ?? 0),
+        answers: Number(item.answers ?? 0),
+        accuracyPercent: Number(item.accuracyPercent ?? 0),
+      } satisfies TriviaResultLeaderboardRow;
+    }),
+    questions: questionsRaw.map((row) => {
+      const item = row as Record<string, unknown>;
+      return {
+        questionNumber: Number(item.questionNumber ?? 0),
+        questionId: item.questionId ? String(item.questionId) : null,
+        prompt: String(item.prompt ?? ''),
+        category: String(item.category ?? 'Uncategorized'),
+        difficulty: String(item.difficulty ?? 'medium'),
+        points: Number(item.points ?? 0),
+        correctAnswer: item.correctAnswer ? String(item.correctAnswer) : null,
+        explanation: item.explanation ? String(item.explanation) : null,
+        shownAt: item.shownAt ? String(item.shownAt) : null,
+        teamsAnswered: Number(item.teamsAnswered ?? 0),
+        teamsCorrect: Number(item.teamsCorrect ?? 0),
+        accuracyPercent: Number(item.accuracyPercent ?? 0),
+        averagePoints: Number(item.averagePoints ?? 0),
+      } satisfies TriviaResultQuestion;
+    }),
+  };
+}
+
+export async function listTriviaResults(
+  venueId: string,
+  limit = 50,
+  offset = 0,
+): Promise<TriviaResultsPayload> {
+  const client = requireSupabase();
+  const { data, error } = await client.rpc('tvm_list_trivia_results', {
+    p_venue_id: venueId,
+    p_limit: limit,
+    p_offset: offset,
+  });
+
+  if (error) throw new Error(error.message);
+  return normalizeTriviaResultsPayload(data);
+}
+
+export async function getTriviaResult(
+  sessionId: string,
+): Promise<TriviaResultDetail> {
+  const client = requireSupabase();
+  const { data, error } = await client.rpc('tvm_get_trivia_result', {
+    p_session_id: sessionId,
+  });
+
+  if (error) throw new Error(error.message);
+  return normalizeTriviaResultDetail(data);
 }
