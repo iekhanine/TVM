@@ -1083,27 +1083,9 @@
     #0b1017;
 }
 
-.player-prototype-bar {
-  min-height: 54px;
-  padding: 9px 18px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  border-bottom: 1px solid var(--trivia-line-soft);
-}
-
-.player-prototype-bar > a {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--trivia-muted);
-  font-size: 8px;
-  font-weight: 800;
-}
 
 .player-phone-wrap {
-  min-height: calc(100vh - 54px);
+  min-height: 100vh;
   padding: 22px;
   display: grid;
   place-items: center;
@@ -1562,9 +1544,6 @@
     display: none;
   }
 
-  .player-prototype-bar {
-    padding: 9px 11px;
-  }
 
   .player-phone-wrap {
     padding: 0;
@@ -1573,9 +1552,3124 @@
 
   .player-phone {
     width: 100%;
-    min-height: calc(100vh - 54px);
+    min-height: 100vh;
     border: 0;
     border-radius: 0;
     box-shadow: none;
+  }
+}
+
+/* ==========================================================
+   TRIVIA CSS 011 - SUPABASE RUNTIME COMPATIBILITY
+   The live Supabase TSX introduced runtime, auth, team, and
+   display class names that were not present in the original
+   visual-only prototype stylesheet.
+   ========================================================== */
+
+/* ---- Global link / control reset inside Trivia surfaces ---- */
+
+.trivia-host-shell a,
+.trivia-display-shell a,
+.trivia-player-shell a,
+.trivia-auth-page a,
+.runtime-fullscreen a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.trivia-host-shell button:disabled,
+.trivia-display-shell button:disabled,
+.trivia-player-shell button:disabled,
+.trivia-auth-page button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.panel-kicker,
+.eyebrow {
+  font-size: 9px;
+}
+
+.trivia-brand__name small {
+  font-size: 8px;
+}
+
+/* ---- Motion / shared runtime feedback ---- */
+
+@keyframes trivia-spin {
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: trivia-spin 0.9s linear infinite;
+}
+
+.runtime-message {
+  padding: 10px 12px;
+  border: 1px solid rgba(106, 169, 255, 0.24);
+  border-radius: 8px;
+  background: rgba(106, 169, 255, 0.08);
+  color: #cdddf3;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.runtime-message--error {
+  border-color: rgba(239, 125, 131, 0.32);
+  background: rgba(239, 125, 131, 0.08);
+  color: #f2b5b9;
+}
+
+.runtime-live-pill {
+  border-color: rgba(105, 214, 154, 0.22);
+  background: rgba(105, 214, 154, 0.08);
+  color: var(--trivia-green);
+}
+
+.runtime-mini-empty {
+  padding: 16px;
+  color: #9aa6b7;
+  font-size: 11px;
+  text-align: center;
+}
+
+/* ---- Auth / fatal / loading screens ---- */
+
+.trivia-auth-page,
+.runtime-fullscreen {
+  min-height: 100vh;
+  padding: 28px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(88, 216, 198, 0.08), transparent 30%),
+    var(--trivia-bg);
+  color: var(--trivia-text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.trivia-auth-card {
+  width: min(430px, 100%);
+  padding: 28px;
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--trivia-line);
+  border-radius: 14px;
+  background: var(--trivia-panel);
+  box-shadow: var(--trivia-shadow);
+}
+
+.trivia-auth-card .trivia-brand {
+  margin-bottom: 8px;
+}
+
+.trivia-auth-card h1 {
+  margin: 0;
+  color: var(--trivia-ink);
+  font-size: 26px;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+}
+
+.trivia-auth-card > p {
+  margin: -4px 0 4px;
+  color: #9ba7b8;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.trivia-auth-card label,
+.team-name-field {
+  display: grid;
+  gap: 6px;
+}
+
+.trivia-auth-card label > span,
+.team-name-field > span {
+  color: #aeb8c7;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.trivia-auth-card input,
+.team-name-field input,
+.runtime-display-code-entry input {
+  width: 100%;
+  border: 1px solid var(--trivia-line);
+  border-radius: 8px;
+  outline: 0;
+  background: #0e141d;
+  color: var(--trivia-ink);
+}
+
+.trivia-auth-card input {
+  height: 42px;
+  padding: 0 12px;
+}
+
+.trivia-auth-card input:focus,
+.team-name-field input:focus,
+.runtime-display-code-entry input:focus {
+  border-color: rgba(88, 216, 198, 0.65);
+  box-shadow: 0 0 0 3px rgba(88, 216, 198, 0.08);
+}
+
+.runtime-text-button {
+  border: 0;
+  background: transparent;
+  color: var(--trivia-accent);
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.runtime-back-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #8d9aae !important;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.runtime-fullscreen {
+  align-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.runtime-fullscreen > svg {
+  color: var(--trivia-accent);
+}
+
+.runtime-fullscreen strong {
+  color: var(--trivia-ink);
+  font-size: 18px;
+}
+
+.runtime-fullscreen span {
+  color: #98a5b6;
+  font-size: 11px;
+}
+
+.runtime-fullscreen a {
+  margin-top: 6px;
+  color: var(--trivia-accent);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* ---- Host empty/lobby runtime ---- */
+
+.runtime-empty-state {
+  min-height: 360px;
+  padding: 42px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.runtime-empty-state > svg,
+.runtime-lobby-copy > svg {
+  color: var(--trivia-accent);
+}
+
+.runtime-empty-state h2,
+.runtime-lobby-copy h3 {
+  margin: 0;
+  color: var(--trivia-ink);
+}
+
+.runtime-empty-state h2 {
+  font-size: 22px;
+}
+
+.runtime-empty-state p,
+.runtime-lobby-copy p {
+  max-width: 560px;
+  margin: 0;
+  color: #98a5b7;
+  line-height: 1.55;
+}
+
+.runtime-empty-state p {
+  font-size: 12px;
+}
+
+.runtime-lobby-copy {
+  min-height: 330px;
+  padding: 36px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.runtime-lobby-copy h3 {
+  font-size: 19px;
+}
+
+.runtime-lobby-copy p {
+  font-size: 11px;
+}
+
+/* ==========================================================
+   TRIVIA CSS 012 - HOST LOWER PANELS / GAME LINKS
+   ========================================================== */
+
+.upcoming-panel,
+.join-panel {
+  overflow: hidden;
+}
+
+.runtime-link-list {
+  padding: 12px;
+  display: grid;
+  gap: 9px;
+}
+
+.runtime-link-list > a {
+  min-height: 62px;
+  padding: 11px 12px;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid var(--trivia-line-soft);
+  border-radius: 9px;
+  background: var(--trivia-panel-2);
+  color: var(--trivia-text) !important;
+  text-decoration: none !important;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease,
+    transform 120ms ease;
+}
+
+.runtime-link-list > a:hover {
+  border-color: rgba(88, 216, 198, 0.38);
+  background: #1c2632;
+  transform: translateY(-1px);
+}
+
+.runtime-link-list > a > svg:first-child {
+  width: 32px;
+  height: 32px;
+  padding: 8px;
+  border-radius: 7px;
+  background: var(--trivia-accent-soft);
+  color: var(--trivia-accent);
+}
+
+.runtime-link-list > a > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.runtime-link-list > a strong {
+  color: var(--trivia-ink);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.runtime-link-list > a span {
+  overflow: hidden;
+  color: #97a4b6;
+  font-size: 10px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtime-link-list > a > svg:last-child {
+  color: #6f7e91;
+}
+
+.runtime-link-list > a:hover > svg:last-child {
+  color: var(--trivia-accent);
+}
+
+.runtime-join-code {
+  margin: 14px 14px 10px;
+  padding: 18px 16px;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  border: 1px solid rgba(88, 216, 198, 0.22);
+  border-radius: 10px;
+  background: rgba(88, 216, 198, 0.07);
+}
+
+.runtime-join-code span {
+  color: #95a4b6;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.runtime-join-code strong {
+  color: var(--trivia-accent-strong);
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.16em;
+}
+
+.join-panel > p {
+  margin: 0;
+  padding: 0 16px 16px;
+  color: #98a5b7;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/* ==========================================================
+   TRIVIA CSS 013 - LIVE DISPLAY RUNTIME
+   ========================================================== */
+
+.trivia-display-stage {
+  position: relative;
+  z-index: 1;
+  width: min(1400px, calc(100% - 64px));
+  min-height: calc(100vh - 54px);
+  margin: 0 auto;
+  padding: 28px 0 40px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.display-prototype-bar {
+  position: relative;
+  z-index: 5;
+  min-height: 54px;
+  padding: 9px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(8, 12, 18, 0.86);
+  backdrop-filter: blur(12px);
+}
+
+.display-prototype-bar > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #94a1b2 !important;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.display-header {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+}
+
+.display-round-kicker {
+  color: var(--trivia-accent);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.display-lobby {
+  align-self: center;
+  max-width: 900px;
+  margin: 0 auto;
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.display-lobby h1,
+.display-scoreboard-screen h1 {
+  margin: 0;
+  color: var(--trivia-ink);
+  font-size: clamp(44px, 6vw, 88px);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.display-lobby > p {
+  max-width: 740px;
+  margin: 0;
+  color: #a6b1c0;
+  font-size: clamp(16px, 1.7vw, 24px);
+}
+
+.display-lobby .display-join-callout {
+  margin-top: 10px;
+  justify-content: center;
+}
+
+.display-lobby .display-join-callout > div {
+  min-width: 280px;
+  padding: 18px 30px;
+  display: grid;
+  justify-items: center;
+  border: 1px solid rgba(88, 216, 198, 0.28);
+  border-radius: 15px;
+  background: rgba(88, 216, 198, 0.08);
+}
+
+.display-lobby .display-join-callout strong {
+  font-size: clamp(46px, 6vw, 76px);
+}
+
+.display-lobby-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.display-lobby-stats span {
+  padding: 9px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--trivia-line);
+  border-radius: 999px;
+  background: var(--trivia-panel);
+  color: #a8b4c4;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.display-question-area {
+  align-self: center;
+  padding-top: 4vh;
+}
+
+.display-question-area .display-question-meta {
+  justify-content: space-between;
+}
+
+.display-question-area .display-question-meta > div:first-child {
+  display: grid;
+  gap: 6px;
+}
+
+.display-question-area .display-question-meta > div:first-child > span {
+  color: var(--trivia-accent);
+}
+
+.display-question-area .display-question-meta > div:first-child > strong {
+  color: #aeb9c8;
+  font-size: 12px;
+}
+
+.display-question-area > h1 {
+  max-width: 1180px;
+  margin: 4vh auto;
+  color: var(--trivia-ink);
+  font-size: clamp(36px, 4.4vw, 76px);
+  line-height: 1.06;
+  letter-spacing: -0.045em;
+  text-align: center;
+}
+
+.display-timer {
+  width: 86px;
+  height: 86px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  border: 2px solid rgba(88, 216, 198, 0.35);
+  border-radius: 50%;
+  background: rgba(88, 216, 198, 0.06);
+}
+
+.display-timer strong {
+  color: var(--trivia-ink);
+  font-size: 31px;
+  line-height: 1;
+}
+
+.display-timer span {
+  margin-top: 4px;
+  color: var(--trivia-accent);
+  font-size: 8px;
+  font-weight: 850;
+}
+
+.display-answer small {
+  color: #8d9aac;
+  font-size: 11px;
+}
+
+.display-footer-status {
+  width: min(1100px, 100%);
+  margin: 28px auto 0;
+  padding-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  color: #8d99aa;
+}
+
+.display-footer-status span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+}
+
+.display-footer-status strong {
+  max-width: 700px;
+  color: #c3ccd8;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.display-scoreboard-screen {
+  align-self: center;
+  width: min(1000px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 24px;
+}
+
+.display-scoreboard-screen > .display-round-kicker,
+.display-scoreboard-screen > h1 {
+  text-align: center;
+}
+
+.display-scoreboard-list {
+  display: grid;
+  gap: 10px;
+}
+
+.display-scoreboard-list > div {
+  min-height: 72px;
+  padding: 12px 18px;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto 120px;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--trivia-line);
+  border-radius: 10px;
+  background: rgba(20, 26, 35, 0.94);
+}
+
+.display-scoreboard-list > div > span {
+  color: var(--trivia-accent);
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.display-scoreboard-list > div > strong {
+  color: var(--trivia-ink);
+  font-size: 21px;
+}
+
+.display-scoreboard-list > div > small {
+  color: #8996a8;
+  font-size: 11px;
+}
+
+.display-scoreboard-list > div > b {
+  color: var(--trivia-gold);
+  font-size: 20px;
+  text-align: right;
+}
+
+.runtime-display-code-entry {
+  position: relative;
+  z-index: 2;
+  width: min(480px, calc(100% - 32px));
+  min-height: calc(100vh - 54px);
+  margin: 0 auto;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.runtime-display-code-entry > span {
+  color: var(--trivia-accent);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+}
+
+.runtime-display-code-entry h1 {
+  margin: 0;
+  color: var(--trivia-ink);
+  font-size: 30px;
+}
+
+.runtime-display-code-entry input {
+  width: 220px;
+  height: 76px;
+  padding: 0 16px;
+  color: var(--trivia-ink);
+  font-size: 38px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-align: center;
+}
+
+.runtime-display-code-entry > button {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--trivia-accent);
+  color: #07120f;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+/* ==========================================================
+   TRIVIA CSS 014 - PLAYER TEAM RUNTIME
+   ========================================================== */
+
+.runtime-connected-button {
+  cursor: pointer;
+}
+
+.runtime-player-message {
+  margin: 12px 14px 0;
+}
+
+.player-team-screen,
+.player-team-lobby {
+  padding: 22px 20px 26px;
+}
+
+.player-team-screen > h1,
+.team-lobby-hero h1 {
+  margin: 4px 0 8px;
+  color: var(--trivia-ink);
+  font-size: 26px;
+  letter-spacing: -0.035em;
+}
+
+.player-team-screen > p,
+.team-lobby-hero p {
+  margin: 0;
+  color: #9aa6b6;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.team-action-grid {
+  margin-top: 18px;
+  display: grid;
+  gap: 9px;
+}
+
+.team-action-card {
+  min-height: 70px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--trivia-line);
+  border-radius: 9px;
+  background: var(--trivia-panel-2);
+  color: var(--trivia-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.team-action-card > svg {
+  color: var(--trivia-accent);
+}
+
+.team-action-card > div {
+  display: grid;
+  gap: 3px;
+}
+
+.team-action-card strong {
+  color: var(--trivia-ink);
+  font-size: 11px;
+}
+
+.team-action-card span {
+  color: #919daf;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.team-action-card.is-primary {
+  border-color: rgba(88, 216, 198, 0.3);
+  background: rgba(88, 216, 198, 0.07);
+}
+
+.team-name-field {
+  margin-top: 14px;
+}
+
+.team-name-field input {
+  height: 40px;
+  padding: 0 11px;
+}
+
+.available-teams {
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid var(--trivia-line-soft);
+  border-radius: 9px;
+}
+
+.available-teams__heading,
+.team-roster__heading {
+  min-height: 34px;
+  padding: 0 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #111821;
+}
+
+.available-teams__heading span,
+.team-roster__heading span {
+  color: #8996a8;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+}
+
+.available-teams__heading strong,
+.team-roster__heading strong {
+  color: var(--trivia-accent);
+  font-size: 9px;
+}
+
+.available-teams > button {
+  width: 100%;
+  min-height: 52px;
+  padding: 9px 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 0;
+  border-top: 1px solid var(--trivia-line-soft);
+  background: var(--trivia-panel);
+  color: var(--trivia-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.available-teams > button:hover {
+  background: var(--trivia-panel-2);
+}
+
+.available-teams > button > div {
+  display: grid;
+  gap: 3px;
+}
+
+.available-teams > button strong {
+  color: var(--trivia-ink);
+  font-size: 10px;
+}
+
+.available-teams > button span {
+  color: #8f9bad;
+  font-size: 9px;
+}
+
+.team-lobby-hero {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.team-lobby-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 8px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--trivia-accent-soft);
+  color: var(--trivia-accent);
+}
+
+.team-code-card {
+  margin-top: 18px;
+  padding: 12px 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid rgba(88, 216, 198, 0.24);
+  border-radius: 9px;
+  background: rgba(88, 216, 198, 0.06);
+}
+
+.team-code-card > div {
+  display: grid;
+  gap: 4px;
+}
+
+.team-code-card span {
+  color: #8f9cad;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+}
+
+.team-code-card strong {
+  color: var(--trivia-accent-strong);
+  font-size: 20px;
+  letter-spacing: 0.12em;
+}
+
+.team-code-card button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--trivia-line);
+  border-radius: 7px;
+  background: var(--trivia-panel-2);
+  color: #abb6c5;
+  cursor: pointer;
+}
+
+.team-roster {
+  margin-top: 12px;
+  overflow: hidden;
+  border: 1px solid var(--trivia-line-soft);
+  border-radius: 9px;
+}
+
+.team-member {
+  min-height: 47px;
+  padding: 8px 10px;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  border-top: 1px solid var(--trivia-line-soft);
+}
+
+.team-member__avatar {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--trivia-panel-3);
+  color: var(--trivia-accent);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.team-member > strong {
+  color: var(--trivia-ink);
+  font-size: 10px;
+}
+
+.team-member > span:last-child {
+  color: #8290a3;
+  font-size: 8px;
+}
+
+.captain-badge {
+  padding: 4px 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  background: rgba(240, 199, 106, 0.1);
+  color: var(--trivia-gold) !important;
+  font-size: 8px !important;
+  font-weight: 850;
+}
+
+.team-rule-card {
+  margin-top: 12px;
+  padding: 11px;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 9px;
+  border: 1px solid var(--trivia-line-soft);
+  border-radius: 9px;
+  background: #111821;
+}
+
+.team-rule-card > svg {
+  color: var(--trivia-gold);
+}
+
+.team-rule-card > div {
+  display: grid;
+  gap: 3px;
+}
+
+.team-rule-card strong {
+  color: var(--trivia-ink);
+  font-size: 10px;
+}
+
+.team-rule-card span {
+  color: #929fb0;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.runtime-waiting {
+  margin-top: 13px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: #8f9cad;
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.runtime-waiting > svg {
+  color: var(--trivia-accent);
+}
+
+.player-team-banner {
+  margin-bottom: 13px;
+  padding: 10px 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--trivia-line-soft);
+  border-radius: 8px;
+  background: #111821;
+}
+
+.player-team-banner > div {
+  display: grid;
+  gap: 2px;
+}
+
+.player-team-banner > div > span {
+  color: #8390a2;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.player-team-banner > div > strong {
+  color: var(--trivia-ink);
+  font-size: 11px;
+}
+
+.player-team-banner > div > small {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #8d9aac;
+  font-size: 8px;
+}
+
+.team-vote-card {
+  margin-top: 12px;
+  padding: 11px;
+  border: 1px solid var(--trivia-line-soft);
+  border-radius: 9px;
+  background: #111821;
+}
+
+.team-vote-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.team-vote-card__top span {
+  color: #8794a6;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.team-vote-card__top strong {
+  color: var(--trivia-text);
+  font-size: 9px;
+}
+
+.team-vote-bars {
+  min-height: 7px;
+  margin: 10px 0;
+  display: flex;
+  gap: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+}
+
+.team-vote-bars > span {
+  min-width: 4px;
+  height: 7px;
+  border-radius: 999px;
+  background: #344153;
+  transition: width 180ms ease;
+}
+
+.team-vote-bars > span.is-leading {
+  background: var(--trivia-accent);
+}
+
+.team-vote-card small {
+  color: #909daf;
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+.team-lock-button {
+  margin-top: 10px;
+}
+
+.runtime-reveal-note {
+  margin-top: 12px;
+  padding: 11px;
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(105, 214, 154, 0.22);
+  border-radius: 9px;
+  background: rgba(105, 214, 154, 0.06);
+}
+
+.runtime-reveal-note strong {
+  color: var(--trivia-green);
+  font-size: 9px;
+}
+
+.runtime-reveal-note span {
+  color: #b4c0cf;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.runtime-mobile-leaderboard {
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid var(--trivia-line-soft);
+  border-radius: 9px;
+}
+
+.runtime-mobile-leaderboard > div {
+  min-height: 48px;
+  padding: 8px 11px;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid var(--trivia-line-soft);
+  background: var(--trivia-panel);
+}
+
+.runtime-mobile-leaderboard > div:first-child {
+  border-top: 0;
+}
+
+.runtime-mobile-leaderboard span {
+  color: var(--trivia-accent);
+  font-size: 9px;
+  font-weight: 850;
+}
+
+.runtime-mobile-leaderboard strong {
+  color: var(--trivia-ink);
+  font-size: 10px;
+}
+
+.runtime-mobile-leaderboard b {
+  color: var(--trivia-gold);
+  font-size: 10px;
+}
+
+/* ==========================================================
+   TRIVIA CSS 015 - RESPONSIVE RUNTIME OVERRIDES
+   ========================================================== */
+
+@media (max-width: 780px) {
+  .runtime-link-list > a {
+    grid-template-columns: 32px minmax(0, 1fr) 18px;
+  }
+
+  .trivia-display-stage {
+    width: min(100% - 30px, 900px);
+    padding-top: 20px;
+  }
+
+  .display-header {
+    min-height: 48px;
+  }
+
+  .display-question-area .display-question-meta {
+    align-items: center;
+  }
+
+  .display-footer-status {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .display-footer-status strong {
+    text-align: left;
+  }
+
+  .display-scoreboard-list > div {
+    grid-template-columns: 36px minmax(0, 1fr) 92px;
+  }
+
+  .display-scoreboard-list > div > small {
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .trivia-auth-page {
+    padding: 0;
+  }
+
+  .trivia-auth-card {
+    min-height: 100vh;
+    padding: 22px 18px;
+    align-content: center;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .display-prototype-bar {
+    padding: 9px 11px;
+  }
+
+  .runtime-join-code strong {
+    font-size: 29px;
+  }
+
+  .player-team-screen,
+  .player-team-lobby {
+    padding: 20px 16px 24px;
+  }
+}
+
+.question-control-panel {
+  min-width: 0;
+}
+
+/* ==========================================================
+   TRIVIA SESSION ACCESS / QR
+   Explicit public URLs and player QR entry points.
+   ========================================================== */
+
+.session-access-panel {
+  margin: 14px 0;
+  padding: 16px;
+}
+
+.session-access-heading {
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.session-access-code {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.session-access-code span {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #aeb7c8;
+}
+
+.session-access-code strong {
+  font-size: 24px;
+  letter-spacing: 0.12em;
+  color: #ffffff;
+}
+
+.session-access-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 230px;
+  gap: 12px;
+}
+
+.session-access-card,
+.session-qr-card {
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.session-access-card {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  column-gap: 11px;
+  row-gap: 12px;
+  padding: 13px;
+}
+
+.session-access-card__icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.065);
+  color: #ffffff;
+}
+
+.session-access-card__copy {
+  min-width: 0;
+}
+
+.session-access-card__copy > span,
+.session-qr-card > div:last-child > span {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  color: #9ea9bb;
+}
+
+.session-access-card__copy > strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.session-access-card__copy code {
+  display: block;
+  overflow: hidden;
+  margin-bottom: 8px;
+  padding: 8px 9px;
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.24);
+  color: #dce5f5;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session-access-card__copy small,
+.session-qr-card small {
+  display: block;
+  color: #aeb7c8;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.session-access-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.session-access-actions a,
+.session-access-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.055);
+  color: #f5f7fb;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 750;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.session-access-actions a:hover,
+.session-access-actions button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.session-qr-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 13px;
+  text-align: center;
+}
+
+.session-qr-code {
+  display: grid;
+  place-items: center;
+  padding: 10px;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.session-qr-code svg,
+.display-player-qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.session-qr-card > div:last-child > strong {
+  display: block;
+  margin: 3px 0 7px;
+  font-size: 28px;
+  letter-spacing: 0.12em;
+  color: #ffffff;
+}
+
+.display-lobby-access {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(26px, 5vw, 72px);
+  margin: 28px auto 22px;
+}
+
+.display-lobby-access .display-join-callout {
+  margin: 0;
+}
+
+.display-player-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.display-player-qr > div {
+  width: 196px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+}
+
+.display-player-qr > span {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  color: #ffffff;
+}
+
+.display-player-qr > small {
+  max-width: 290px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 11px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1100px) {
+  .session-access-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .session-qr-card {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    text-align: left;
+  }
+
+  .session-qr-code {
+    width: 150px;
+    flex: 0 0 150px;
+  }
+}
+
+@media (max-width: 760px) {
+  .session-access-heading,
+  .display-lobby-access {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .session-access-code {
+    align-self: stretch;
+    justify-content: space-between;
+  }
+
+  .session-access-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .session-qr-card {
+    grid-column: auto;
+  }
+}
+
+/* ==========================================================
+   DISPLAY PUBLIC SURFACE
+   The TV route is presentation-only. No host/project chrome.
+   ========================================================== */
+
+.display-header--public {
+  justify-content: flex-end;
+}
+
+.trivia-display-shell .display-prototype-bar {
+  display: none !important;
+}
+
+/* ==========================================================
+   TRIVIA CSS 020 - TRUE MOBILE PLAYER SURFACE
+   The player route is a viewport-native web app, not a
+   simulated phone card. Fluid width, safe areas, dynamic type.
+   ========================================================== */
+
+.trivia-player-shell {
+  width: 100%;
+  min-width: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  background: #0b1017;
+}
+
+.player-phone-wrap {
+  width: 100%;
+  min-width: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 0;
+  display: block;
+}
+
+.player-phone {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 0;
+  border-radius: 0;
+  background: #111720;
+  box-shadow: none;
+}
+
+.player-phone,
+.player-phone *,
+.player-phone *::before,
+.player-phone *::after {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.player-phone__header {
+  width: 100%;
+  min-width: 0;
+  min-height: 58px;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-right: max(14px, env(safe-area-inset-right, 0px));
+  padding-left: max(14px, env(safe-area-inset-left, 0px));
+}
+
+.player-join-screen,
+.player-question-screen,
+.player-team-screen,
+.player-team-lobby {
+  width: 100%;
+  min-width: 0;
+  padding-top: clamp(18px, 5vw, 28px);
+  padding-right: max(clamp(14px, 4.5vw, 26px), env(safe-area-inset-right, 0px));
+  padding-bottom: max(clamp(22px, 6vw, 34px), env(safe-area-inset-bottom, 0px));
+  padding-left: max(clamp(14px, 4.5vw, 26px), env(safe-area-inset-left, 0px));
+}
+
+.runtime-player-message {
+  margin-right: max(14px, env(safe-area-inset-right, 0px));
+  margin-left: max(14px, env(safe-area-inset-left, 0px));
+}
+
+/* 16px prevents iOS Safari from zooming the page when a text input gets focus. */
+.player-phone input,
+.player-phone select,
+.player-phone textarea {
+  min-width: 0;
+  font-size: 16px;
+}
+
+.player-join-screen label:first-of-type input {
+  font-size: clamp(26px, 9vw, 38px);
+  letter-spacing: clamp(0.12em, 1.8vw, 0.22em);
+}
+
+.player-join-screen h1,
+.player-team-screen > h1,
+.team-lobby-hero h1 {
+  font-size: clamp(26px, 8vw, 38px);
+  line-height: 1.08;
+}
+
+.player-question-copy h1 {
+  overflow-wrap: anywhere;
+  font-size: clamp(21px, 6.2vw, 34px);
+  line-height: 1.2;
+}
+
+.player-join-screen > p,
+.player-team-screen > p,
+.team-lobby-hero p {
+  font-size: clamp(13px, 3.6vw, 16px);
+}
+
+.player-kicker,
+.player-game-meta span,
+.player-score-strip span,
+.player-team-banner > div > span,
+.team-name-field > span,
+.player-join-screen label > span {
+  font-size: clamp(10px, 2.7vw, 12px);
+}
+
+.player-game-meta strong,
+.player-team-banner > div > strong {
+  font-size: clamp(13px, 3.7vw, 16px);
+}
+
+.player-answer-list {
+  width: 100%;
+  gap: clamp(9px, 2.5vw, 13px);
+}
+
+.player-answer-button {
+  width: 100%;
+  min-width: 0;
+  min-height: clamp(58px, 15vw, 76px);
+  padding: clamp(10px, 2.8vw, 15px);
+  grid-template-columns: clamp(34px, 10vw, 44px) minmax(0, 1fr) auto;
+  gap: clamp(9px, 2.6vw, 14px);
+}
+
+.player-answer-button > span {
+  width: clamp(34px, 10vw, 44px);
+  height: clamp(34px, 10vw, 44px);
+  font-size: clamp(12px, 3.2vw, 15px);
+}
+
+.player-answer-button strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(14px, 4vw, 18px);
+  line-height: 1.3;
+}
+
+.player-primary-button,
+.team-action-card,
+.available-teams > button,
+.team-code-card button {
+  touch-action: manipulation;
+}
+
+.player-primary-button {
+  min-height: 52px;
+  font-size: clamp(14px, 3.8vw, 17px);
+}
+
+.team-action-card {
+  width: 100%;
+  min-width: 0;
+  min-height: 76px;
+  grid-template-columns: 36px minmax(0, 1fr);
+}
+
+.team-action-card strong,
+.available-teams > button strong,
+.team-member > strong,
+.team-rule-card strong {
+  font-size: clamp(13px, 3.5vw, 16px);
+}
+
+.team-action-card span,
+.available-teams > button span,
+.team-rule-card span,
+.team-vote-card small,
+.runtime-reveal-note span {
+  overflow-wrap: anywhere;
+  font-size: clamp(11px, 3vw, 14px);
+}
+
+.team-code-card {
+  width: 100%;
+  min-width: 0;
+}
+
+.team-code-card strong {
+  overflow-wrap: anywhere;
+  font-size: clamp(18px, 6vw, 28px);
+}
+
+.team-member,
+.runtime-mobile-leaderboard > div {
+  width: 100%;
+  min-width: 0;
+}
+
+.team-member > strong,
+.runtime-mobile-leaderboard strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-team-banner,
+.team-vote-card__top,
+.team-code-card,
+.available-teams > button {
+  min-width: 0;
+}
+
+.player-team-banner > div,
+.team-vote-card__top > *,
+.team-code-card > div,
+.available-teams > button > div {
+  min-width: 0;
+}
+
+.player-score-strip {
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1.45fr) minmax(56px, 0.65fr) minmax(68px, 0.9fr);
+}
+
+.player-score-strip > div {
+  min-width: 0;
+  padding-right: clamp(6px, 2vw, 10px);
+  padding-left: clamp(6px, 2vw, 10px);
+}
+
+.player-score-strip strong {
+  font-size: clamp(11px, 3.1vw, 14px);
+}
+
+.runtime-mobile-leaderboard > div {
+  grid-template-columns: clamp(30px, 9vw, 42px) minmax(0, 1fr) auto;
+}
+
+.runtime-mobile-leaderboard span,
+.runtime-mobile-leaderboard strong,
+.runtime-mobile-leaderboard b {
+  font-size: clamp(12px, 3.2vw, 15px);
+}
+
+/* Very narrow devices: protect horizontal space without shrinking the whole page. */
+@media (max-width: 360px) {
+  .player-phone__header {
+    gap: 7px;
+  }
+
+  .player-connected {
+    padding: 0 6px;
+    font-size: 9px;
+  }
+
+  .player-game-meta {
+    gap: 10px;
+  }
+
+  .player-score-strip {
+    grid-template-columns: minmax(0, 1.2fr) 54px 64px;
+  }
+
+  .team-member {
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    gap: 6px;
+  }
+
+  .captain-badge {
+    padding: 3px 5px;
+    font-size: 9px !important;
+  }
+}
+
+/* Larger phones/tablets use the extra space rather than preserving a fake handset width. */
+@media (min-width: 600px) {
+  .player-join-screen,
+  .player-question-screen,
+  .player-team-screen,
+  .player-team-lobby {
+    padding-right: clamp(28px, 7vw, 64px);
+    padding-left: clamp(28px, 7vw, 64px);
+  }
+
+  .player-answer-button {
+    min-height: 72px;
+  }
+}
+
+
+/* ==========================================================
+   TRIVIA CSS 021 - MOBILE SCROLL / OVERSCROLL FIX
+   One scrolling surface, no white page reveal, and stable
+   viewport sizing across phase changes.
+   ========================================================== */
+
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  background: #0b1017;
+}
+
+html,
+body {
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+}
+
+.trivia-player-shell {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  background: #0b1017;
+}
+
+.player-phone-wrap {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #0b1017;
+}
+
+.player-phone {
+  height: 100%;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  background: #111720;
+}
+
+/* Make the active player screen size itself from its content rather than
+   leaving phantom space from an older/full-height prototype layout. */
+.player-join-screen,
+.player-question-screen,
+.player-team-screen,
+.player-team-lobby {
+  min-height: 0;
+  height: auto;
+}
+
+/* Keeps the bottom of the last card visually inside the app when a phone
+   has a home indicator/safe area. */
+.player-phone > section:last-child {
+  padding-bottom: max(clamp(22px, 6vw, 34px), env(safe-area-inset-bottom, 0px));
+}
+
+/* ==========================================================
+   TRIVIA CSS 022 - HOST DESKTOP SCROLL FIX
+   Give the host console its own vertical scroll surface so
+   global/player overflow rules cannot disable mouse-wheel
+   scrolling on the operator interface.
+   ========================================================== */
+
+@media (min-width: 781px) {
+  .trivia-host-shell {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .trivia-sidebar {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+  }
+
+  .trivia-host-main {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable;
+  }
+}
+
+/* On narrow layouts the host returns to normal document flow. */
+@media (max-width: 780px) {
+  .trivia-host-shell,
+  .trivia-host-main,
+  .trivia-sidebar {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+}
+
+
+/* ==========================================================
+   TRIVIA CSS 023 - HOST LIVE PARTICIPATION BOARD
+   Team/player readiness and lock status for the host.
+   ========================================================== */
+
+.live-response-panel {
+  margin-top: 16px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.live-response-heading {
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.live-lock-summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 210px;
+  padding: 9px 11px;
+  border: 1px solid rgba(245, 158, 11, 0.26);
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.07);
+  color: #fbbf24;
+}
+
+.live-lock-summary.is-complete {
+  border-color: rgba(34, 197, 94, 0.32);
+  background: rgba(34, 197, 94, 0.09);
+  color: #4ade80;
+}
+
+.live-lock-summary > div {
+  display: grid;
+  gap: 2px;
+}
+
+.live-lock-summary strong {
+  color: currentColor;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.live-lock-summary span {
+  color: #a8b3c7;
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.live-response-error {
+  margin: 14px 18px 0;
+}
+
+.live-response-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.live-response-stats > div {
+  display: grid;
+  gap: 2px;
+  padding: 13px 18px;
+  border-right: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.live-response-stats > div:last-child {
+  border-right: 0;
+}
+
+.live-response-stats strong {
+  color: #f8fafc;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.live-response-stats span {
+  color: #8fa0b8;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.live-response-stats .is-complete strong {
+  color: #4ade80;
+}
+
+.host-team-status-list {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.host-team-status-card {
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.48);
+  overflow: hidden;
+}
+
+.host-team-status-card.is-locked {
+  border-color: rgba(34, 197, 94, 0.28);
+  background: rgba(22, 101, 52, 0.08);
+}
+
+.host-team-status-main {
+  display: grid;
+  grid-template-columns: 30px minmax(140px, 1fr) 64px 92px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.host-team-status-name {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.host-team-status-name strong {
+  overflow: hidden;
+  color: #f8fafc;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.host-team-status-name span {
+  color: #8fa0b8;
+  font-size: 10px;
+}
+
+.host-team-vote-status {
+  display: grid;
+  gap: 1px;
+  text-align: right;
+}
+
+.host-team-vote-status strong {
+  color: #f8fafc;
+  font-size: 12px;
+}
+
+.host-team-vote-status span {
+  color: #7f8ca3;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.host-team-lock-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 26px;
+  padding: 5px 8px;
+  border: 1px solid rgba(245, 158, 11, 0.24);
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.07);
+  color: #fbbf24;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.host-team-lock-badge.is-locked {
+  border-color: rgba(34, 197, 94, 0.3);
+  background: rgba(34, 197, 94, 0.1);
+  color: #4ade80;
+}
+
+.host-team-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 12px 10px 52px;
+}
+
+.host-player-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 25px;
+  padding: 4px 7px;
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  border-radius: 999px;
+  background: rgba(2, 6, 23, 0.42);
+  color: #a8b3c7;
+  font-size: 9px;
+}
+
+.host-player-chip strong {
+  color: #dbe5f2;
+  font-size: 10px;
+}
+
+.host-player-presence {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: #64748b;
+  box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.12);
+}
+
+.host-player-chip.is-online .host-player-presence {
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.13);
+}
+
+.host-player-chip.is-offline {
+  opacity: 0.68;
+}
+
+.host-player-captain,
+.host-player-vote {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #7f8ca3;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.host-player-captain {
+  color: #fbbf24;
+}
+
+.host-player-vote.has-voted {
+  color: #4ade80;
+}
+
+.host-team-locked-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px 8px 52px;
+  border-top: 1px solid rgba(34, 197, 94, 0.1);
+  color: #86efac;
+  font-size: 9px;
+}
+
+.host-unassigned-players {
+  margin: 0 12px 12px;
+  border: 1px dashed rgba(148, 163, 184, 0.2);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.28);
+}
+
+.host-unassigned-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.host-unassigned-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.host-unassigned-heading strong {
+  color: #dbe5f2;
+  font-size: 10px;
+}
+
+.host-unassigned-players .host-team-members {
+  padding: 0 12px 10px;
+}
+
+@media (max-width: 980px) {
+  .live-response-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .live-response-stats > div:nth-child(2) {
+    border-right: 0;
+  }
+
+  .live-response-stats > div:nth-child(-n + 2) {
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  }
+
+  .host-team-status-main {
+    grid-template-columns: 28px minmax(120px, 1fr) 58px 86px;
+  }
+}
+
+@media (max-width: 700px) {
+  .live-response-heading {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .live-lock-summary {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .host-team-status-main {
+    grid-template-columns: 26px minmax(0, 1fr) auto;
+  }
+
+  .host-team-vote-status {
+    display: none;
+  }
+
+  .host-team-lock-badge {
+    grid-column: 3;
+  }
+
+  .host-team-members,
+  .host-team-locked-meta {
+    padding-left: 12px;
+  }
+}
+
+/* ==========================================================
+   HOST HIERARCHY / SESSION ACCESS DRAWER
+   Game control first, live participation second, access third.
+   ========================================================== */
+
+.session-access-drawer {
+  padding: 0;
+  overflow: hidden;
+}
+
+.session-access-drawer__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  width: 100%;
+  padding: 16px 18px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.session-access-drawer__summary::-webkit-details-marker {
+  display: none;
+}
+
+.session-access-drawer__summary::marker {
+  display: none;
+  content: '';
+}
+
+.session-access-drawer__summary:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.session-access-drawer__title {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.session-access-drawer__title > strong {
+  color: var(--trivia-text, #f6f7fb);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.session-access-drawer__title > small {
+  color: var(--trivia-muted, #9ca3af);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.session-access-drawer__meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+.session-access-drawer__meta .session-access-code {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  min-width: auto;
+}
+
+.session-access-drawer__meta .session-access-code strong {
+  font-size: 18px;
+}
+
+.session-access-drawer__chevron {
+  color: var(--trivia-muted, #9ca3af);
+  transition: transform 160ms ease;
+}
+
+.session-access-drawer[open] .session-access-drawer__chevron {
+  transform: rotate(180deg);
+}
+
+.session-access-drawer__body {
+  padding: 0 18px 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.session-access-drawer__body .session-access-grid {
+  margin-top: 16px;
+}
+
+/* Content order spacing: game control -> participation -> access drawer. */
+.host-workspace-grid + .live-response-panel {
+  margin-top: 14px;
+}
+
+.live-response-panel + .session-access-drawer {
+  margin-top: 14px;
+}
+
+@media (max-width: 720px) {
+  .session-access-drawer__summary {
+    align-items: flex-start;
+    padding: 14px;
+  }
+
+  .session-access-drawer__title > small {
+    display: none;
+  }
+
+  .session-access-drawer__body {
+    padding: 0 14px 14px;
+  }
+
+  .session-access-drawer__meta {
+    gap: 8px;
+  }
+}
+
+/* ==========================================================
+   TRIVIA 020 - PERSISTENT TV DISPLAY CONTROL
+   ========================================================== */
+
+.runtime-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+}
+
+.session-display-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 14px;
+  padding: 13px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.session-display-control > div:first-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.session-display-control > div:first-child > strong {
+  color: #f4f7fb;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.session-display-control__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.session-display-control__actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #aeb8c5;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.session-display-control__actions button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.075);
+  color: #fff;
+}
+
+.session-display-control__actions button.is-active {
+  border-color: rgba(83, 211, 160, 0.42);
+  background: rgba(83, 211, 160, 0.12);
+  color: #8de7c3;
+}
+
+.session-display-control__actions button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.display-waiting-screen {
+  width: min(1100px, 90vw);
+  min-height: 72vh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 16px;
+  color: #f5f7fb;
+}
+
+.display-waiting-screen h1 {
+  margin: 0;
+  font-size: clamp(42px, 6vw, 92px);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+
+.display-waiting-screen p {
+  margin: 0;
+  color: #b9c3d0;
+  font-size: clamp(20px, 2.2vw, 34px);
+  font-weight: 700;
+}
+
+.display-waiting-screen small {
+  max-width: 720px;
+  color: #8995a5;
+  font-size: clamp(14px, 1.25vw, 20px);
+  line-height: 1.5;
+}
+
+.display-waiting-pulse {
+  width: 82px;
+  height: 82px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(83, 211, 160, 0.3);
+  border-radius: 50%;
+  background: rgba(83, 211, 160, 0.08);
+  color: #65ddb0;
+  animation: displayWaitingPulse 2.2s ease-in-out infinite;
+}
+
+@keyframes displayWaitingPulse {
+  0%, 100% { transform: scale(1); opacity: 0.78; }
+  50% { transform: scale(1.07); opacity: 1; }
+}
+
+.display-scoreboard-screen--final {
+  width: min(1180px, 92vw);
+  margin: 0 auto;
+}
+
+.display-final-winner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  margin: 20px 0 26px;
+  padding: 18px 22px;
+  border: 1px solid rgba(246, 196, 91, 0.34);
+  border-radius: 12px;
+  background: rgba(246, 196, 91, 0.09);
+  color: #f6c45b;
+}
+
+.display-final-winner > div {
+  display: grid;
+  gap: 3px;
+}
+
+.display-final-winner span {
+  color: #b9a976;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.display-final-winner strong {
+  color: #fff;
+  font-size: clamp(26px, 3vw, 46px);
+}
+
+.display-final-winner b {
+  color: #f6c45b;
+  font-size: clamp(24px, 2.8vw, 42px);
+}
+
+@media (max-width: 820px) {
+  .session-display-control {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .session-display-control__actions {
+    justify-content: flex-start;
+  }
+}
+
+/* ==========================================================
+   PLAYER FINAL SCREEN / NEXT SESSION
+   Final standings remain visible after End Game while the
+   player can enter a fresh game code for the next session.
+   ========================================================== */
+
+.player-final-screen {
+  padding-bottom: max(28px, env(safe-area-inset-bottom));
+}
+
+.player-next-game-card {
+  width: 100%;
+  display: grid;
+  gap: 14px;
+  margin-top: 20px;
+  padding: clamp(16px, 4vw, 22px);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.player-next-game-card h2 {
+  margin: 0;
+  color: #f7f9fc;
+  font-size: clamp(22px, 6vw, 30px);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+
+.player-next-game-card > p {
+  margin: 0;
+  color: #aeb9c7;
+  font-size: clamp(14px, 3.8vw, 16px);
+  line-height: 1.5;
+}
+
+.player-next-game-card label {
+  display: grid;
+  gap: 7px;
+}
+
+.player-next-game-card label > span {
+  color: #b9c3d0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.player-next-game-card input {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  box-sizing: border-box;
+  padding: 11px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  outline: none;
+  background: rgba(4, 8, 14, 0.72);
+  color: #fff;
+  font: inherit;
+  font-size: 16px;
+}
+
+.player-next-game-card input:focus {
+  border-color: rgba(83, 211, 160, 0.55);
+  box-shadow: 0 0 0 3px rgba(83, 211, 160, 0.09);
+}
+
+.player-next-game-card > small {
+  color: #8490a0;
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+/* ==========================================================
+   CAPTAIN TEAMMATE ANSWERS
+   Captains can see each teammate's submitted selection before
+   locking the team's final answer. Correctness remains hidden
+   until the host reveals the question.
+   ========================================================== */
+
+.captain-vote-detail {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.captain-vote-detail__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #d7b66e;
+}
+
+.captain-vote-detail__heading > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.captain-vote-detail__heading span {
+  color: #8f9baa;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.captain-vote-detail__heading strong {
+  color: #f7f9fc;
+  font-size: 14px;
+}
+
+.captain-vote-detail__list {
+  display: grid;
+  gap: 7px;
+}
+
+.captain-vote-row {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(82px, 0.7fr) minmax(0, 1.3fr);
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 9px;
+  background: rgba(3, 7, 12, 0.42);
+}
+
+.captain-vote-row > strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #f0f3f7;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.captain-vote-row > span {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c3ccd7;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.captain-vote-row > span b {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: rgba(83, 211, 160, 0.12);
+  color: #68d7ab;
+  font-size: 11px;
+}
+
+.captain-vote-waiting {
+  color: #7f8b99 !important;
+}
+
+@media (max-width: 420px) {
+  .captain-vote-row {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+}
+
+/* ==========================================================
+   MOBILE VIEWPORT OWNERSHIP - FINAL OVERRIDE
+   Keep the player route as a true viewport-native application.
+   One scroll container only; no simulated handset dimensions.
+   ========================================================== */
+
+html,
+body,
+#root {
+  min-width: 0;
+  min-height: 100%;
+  margin: 0;
+  background: #0b1017;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.trivia-player-shell {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: #111720;
+}
+
+.trivia-player-shell .player-phone-wrap {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  display: block;
+  overflow: hidden;
+}
+
+.trivia-player-shell .player-phone {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  border: 0;
+  border-radius: 0;
+  background: #111720;
+  box-shadow: none;
+  scrollbar-gutter: auto;
+}
+
+.trivia-player-shell .player-phone__header {
+  position: relative;
+  width: 100%;
+  flex: 0 0 auto;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.trivia-player-shell .player-join-screen,
+.trivia-player-shell .player-question-screen,
+.trivia-player-shell .player-team-screen,
+.trivia-player-shell .player-team-lobby,
+.trivia-player-shell .player-final-screen {
+  min-height: 0;
+  height: auto;
+}
+
+.trivia-player-shell .player-final-screen {
+  padding-bottom: max(28px, env(safe-area-inset-bottom, 0px));
+}
+
+/* Prevent iOS form focus zoom while retaining responsive width. */
+.trivia-player-shell input,
+.trivia-player-shell select,
+.trivia-player-shell textarea {
+  max-width: 100%;
+  font-size: 16px;
+}
+
+/* Keep TV reveal checkmark inline instead of wrapping below the answer. */
+.display-answer {
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+}
+
+.display-answer > svg {
+  align-self: center;
+  justify-self: end;
+  margin: 0;
+}
+
+@media (max-width: 520px) {
+  .trivia-player-shell .player-phone-wrap,
+  .trivia-player-shell .player-phone {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+}
+
+/* ==========================================================
+   MOBILE GAMEPLAY PRIORITY - QUESTION / ANSWERS FIRST
+   During an active question, the player route behaves like a
+   controller: question, answers and lock action are primary.
+   Team/score/vote metadata is deliberately moved below.
+   ========================================================== */
+
+/* Hide the general TVM/player header while a question is active.
+   Modern iOS Safari and current Chromium support :has(). */
+.trivia-player-shell .player-phone:has(.player-question-screen) > .player-phone__header {
+  display: none;
+}
+
+.trivia-player-shell .player-question-screen {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  padding-top: max(14px, env(safe-area-inset-top, 0px));
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+}
+
+/* Keep only the countdown at the top. Round/question/points metadata
+   is secondary and moves out of the way of the actual question. */
+.trivia-player-shell .player-game-meta {
+  order: 0;
+  min-height: 44px;
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.trivia-player-shell .player-game-meta > div:first-child {
+  display: none;
+}
+
+.trivia-player-shell .player-timer {
+  width: auto;
+  min-width: 58px;
+  height: auto;
+  min-height: 42px;
+  padding: 5px 12px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 5px;
+  border-radius: 999px;
+}
+
+.trivia-player-shell .player-timer strong {
+  font-size: clamp(20px, 6vw, 28px);
+  line-height: 1;
+}
+
+.trivia-player-shell .player-timer span {
+  font-size: 11px;
+}
+
+/* Question first. */
+.trivia-player-shell .player-question-copy {
+  order: 1;
+  margin: 0 0 clamp(14px, 4vw, 20px);
+}
+
+.trivia-player-shell .player-question-copy > span {
+  margin-bottom: 7px;
+}
+
+.trivia-player-shell .player-question-copy h1 {
+  margin: 0;
+  font-size: clamp(27px, 7.6vw, 40px);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+}
+
+/* Answers immediately after the question. */
+.trivia-player-shell .player-answer-list {
+  order: 2;
+  margin: 0;
+}
+
+.trivia-player-shell .player-answer-button {
+  min-height: clamp(62px, 16vw, 82px);
+}
+
+/* Captain lock/submit is the primary action and remains visible near
+   the bottom of the viewport while the answer list is being scrolled. */
+.trivia-player-shell .team-lock-button {
+  order: 3;
+  position: sticky;
+  bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  z-index: 30;
+  width: 100%;
+  min-height: 58px;
+  margin: 14px 0 0;
+  border: 1px solid rgba(89, 216, 200, 0.62);
+  border-radius: 12px;
+  background: var(--trivia-accent);
+  color: #061513;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.42), 0 0 0 4px rgba(89, 216, 200, 0.08);
+  font-size: clamp(15px, 4.2vw, 18px);
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+
+.trivia-player-shell .team-lock-button:hover:not(:disabled),
+.trivia-player-shell .team-lock-button:active:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.trivia-player-shell .team-lock-button:disabled {
+  opacity: 0.48;
+  box-shadow: none;
+}
+
+/* Locked/waiting feedback belongs directly after answers when there is
+   no active captain submit action. */
+.trivia-player-shell .player-locked-card,
+.trivia-player-shell .player-waiting-card {
+  order: 3;
+  margin-top: 12px;
+}
+
+/* Team voting and teammate detail are useful, but secondary. */
+.trivia-player-shell .team-vote-card {
+  order: 4;
+  margin-top: 18px;
+}
+
+.trivia-player-shell .captain-vote-detail {
+  order: 5;
+  margin-top: 12px;
+}
+
+/* Team identity moves below gameplay. */
+.trivia-player-shell .player-team-banner {
+  order: 6;
+  margin: 16px 0 0;
+}
+
+.trivia-player-shell .player-team-banner::before {
+  content: 'TEAM';
+  align-self: center;
+  margin-right: 2px;
+  color: #758295;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+}
+
+/* Score/rank is intentionally last so it never displaces gameplay. */
+.trivia-player-shell .player-score-strip {
+  order: 7;
+  margin-top: 10px;
+}
+
+.trivia-player-shell .runtime-reveal-note {
+  order: 8;
+}
+
+/* Smaller devices: use more of the viewport for answers and keep the
+   sticky submit button comfortably tappable. */
+@media (max-width: 420px) {
+  .trivia-player-shell .player-question-screen {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .trivia-player-shell .player-game-meta {
+    min-height: 38px;
+  }
+
+  .trivia-player-shell .player-timer {
+    min-width: 54px;
+    min-height: 38px;
+    padding: 4px 10px;
+  }
+
+  .trivia-player-shell .player-question-copy h1 {
+    font-size: clamp(25px, 7.3vw, 34px);
+  }
+
+  .trivia-player-shell .player-answer-button {
+    min-height: 60px;
+    padding: 10px 12px;
+  }
+
+  .trivia-player-shell .team-lock-button {
+    min-height: 56px;
+  }
+}
+
+/* ==========================================================
+   MOBILE GAMEPLAY DOM REWORK - QUESTION FIRST
+   This section intentionally overrides earlier prototype ordering.
+   ========================================================== */
+
+.trivia-player-shell .player-question-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: max(12px, env(safe-area-inset-top, 0px)) 14px max(24px, env(safe-area-inset-bottom, 0px));
+}
+
+.trivia-player-shell .player-question-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 10px;
+}
+
+.trivia-player-shell .player-question-topline > span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.055);
+  color: #9aa7ba;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.trivia-player-shell .player-question-topline .player-timer {
+  flex: 0 0 auto;
+  min-width: 62px;
+  min-height: 40px;
+  padding: 5px 11px;
+  border-radius: 999px;
+}
+
+.trivia-player-shell .player-question-copy {
+  margin: 0 0 14px;
+}
+
+.trivia-player-shell .player-question-copy h1 {
+  margin: 0;
+  font-size: clamp(25px, 7.2vw, 38px);
+  line-height: 1.08;
+  letter-spacing: -.025em;
+}
+
+.trivia-player-shell .player-answer-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.trivia-player-shell .player-answer-button {
+  min-height: 60px;
+  padding: 10px 12px;
+}
+
+.trivia-player-shell .team-lock-button {
+  position: sticky;
+  bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  width: 100%;
+  min-height: 58px;
+  margin: 14px 0 0;
+  border: 1px solid rgba(89,216,200,.72);
+  border-radius: 12px;
+  background: var(--trivia-accent);
+  color: #061513;
+  box-shadow: 0 14px 36px rgba(0,0,0,.5), 0 0 0 4px rgba(89,216,200,.08);
+  font-size: clamp(15px, 4.2vw, 18px);
+  font-weight: 900;
+}
+
+.trivia-player-shell .player-locked-card,
+.trivia-player-shell .runtime-reveal-note {
+  margin-top: 12px;
+}
+
+.trivia-player-shell .player-gameplay-details {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(148,163,184,.12);
+}
+
+.trivia-player-shell .player-gameplay-details .team-vote-card,
+.trivia-player-shell .player-gameplay-details .captain-vote-detail,
+.trivia-player-shell .player-gameplay-details .player-team-banner,
+.trivia-player-shell .player-gameplay-details .player-score-strip {
+  order: initial;
+  margin-top: 0;
+}
+
+.trivia-player-shell .player-team-banner {
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.trivia-player-shell .player-team-banner::before {
+  content: none;
+}
+
+.trivia-player-shell .player-score-strip {
+  margin-bottom: 0;
+}
+
+@media (max-width: 380px) {
+  .trivia-player-shell .player-question-screen {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .trivia-player-shell .player-question-copy h1 {
+    font-size: clamp(23px, 7vw, 32px);
+  }
+
+  .trivia-player-shell .player-answer-button {
+    min-height: 56px;
   }
 }

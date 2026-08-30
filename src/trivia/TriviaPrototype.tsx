@@ -1699,9 +1699,12 @@ function TriviaPlayerRuntime() {
 
           {joined && team && question && state && (state.phase === 'question' || state.phase === 'reveal') && (
             <section className="player-question-screen">
-              <div className="player-team-banner"><div><span>TEAM</span><strong>{team.name}</strong><small><Users size={11} /> {team.members.length} members</small></div>{team.isCaptain && <span className="captain-badge"><Crown size={11} /> Captain</span>}</div>
-              <div className="player-game-meta"><div><span>{state.phase.toUpperCase()}</span><strong>{question.points} points</strong></div><div className="player-timer"><strong>{state.phase === 'question' ? seconds : '✓'}</strong><span>{state.phase === 'question' ? 'sec' : 'done'}</span></div></div>
-              <div className="player-question-copy"><span>{question.type.replace('_', ' ')}</span><h1>{question.prompt}</h1></div>
+              <div className="player-question-topline">
+                <span>{question.type.replace('_', ' ')}</span>
+                <div className="player-timer"><strong>{state.phase === 'question' ? seconds : '✓'}</strong><span>{state.phase === 'question' ? 'sec' : 'done'}</span></div>
+              </div>
+
+              <div className="player-question-copy"><h1>{question.prompt}</h1></div>
 
               <div className="player-answer-list">
                 {question.options.map((answer, index) => {
@@ -1716,60 +1719,58 @@ function TriviaPlayerRuntime() {
                 })}
               </div>
 
-              {!teamLocked && state.phase === 'question' ? (
-                <div className="team-vote-card">
-                  <div className="team-vote-card__top"><span>TEAM VOTE</span><strong>{playerContext?.teamVoteSummary.reduce((sum, row) => sum + row.votes, 0) ?? 0} / {team.members.length} voted</strong></div>
-                  <div className="team-vote-bars">{question.options.map((answer) => <span className={(voteMap.get(answer.id) ?? 0) === Math.max(0, ...Array.from(voteMap.values())) && voteMap.size > 0 ? 'is-leading' : ''} key={answer.id} style={{ width: `${Math.max(4, ((voteMap.get(answer.id) ?? 0) / Math.max(1, team.members.length)) * 100)}%` }} />)}</div>
-                  <small>{team.isCaptain ? 'See how your team is leaning, then lock the final answer.' : 'Your vote is shared with the captain. The captain locks the final answer.'}</small>
-                </div>
-              ) : teamLocked ? (
-                <div className="player-locked-card"><Check size={18} /><div><strong>Team answer locked.</strong><span>{team.name} has submitted its final answer.</span></div></div>
-              ) : (
-                <div className="player-locked-card"><Clock3 size={18} /><div><strong>Voting is closed.</strong><span>Watch the TV for the answer and standings.</span></div></div>
-              )}
-
-              {team.isCaptain && (state.phase === 'question' || state.phase === 'reveal') && (playerContext?.teamMemberVotes?.length ?? 0) > 0 && (
-                <div className="captain-vote-detail">
-                  <div className="captain-vote-detail__heading">
-                    <div>
-                      <span>TEAMMATE ANSWERS</span>
-                      <strong>What your team selected</strong>
-                    </div>
-                    <Crown size={15} />
-                  </div>
-
-                  <div className="captain-vote-detail__list">
-                    {playerContext?.teamMemberVotes.map((memberVote: TriviaTeamMemberVote) => {
-                      const selectedOption = question.options.find((option) => option.id === memberVote.optionId) ?? null;
-                      const selectedIndex = selectedOption
-                        ? question.options.findIndex((option) => option.id === selectedOption.id)
-                        : -1;
-
-                      return (
-                        <div className={`captain-vote-row ${selectedOption ? 'has-answer' : 'is-waiting'}`} key={memberVote.playerId}>
-                          <strong>{memberVote.nickname}</strong>
-                          {selectedOption ? (
-                            <span>
-                              <b>{String.fromCharCode(65 + selectedIndex)}</b>
-                              {selectedOption.label}
-                            </span>
-                          ) : (
-                            <span className="captain-vote-waiting"><Clock3 size={11} /> Waiting</span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
               {team.isCaptain && state.phase === 'question' && (
-                <button className="player-primary-button team-lock-button" type="button" disabled={busy || !selectedAnswer || teamLocked} onClick={() => void lockAnswer()}><Crown size={15} /> {teamLocked ? 'Answer Locked' : 'Lock Team Answer'}</button>
+                <button className="player-primary-button team-lock-button" type="button" disabled={busy || !selectedAnswer || teamLocked} onClick={() => void lockAnswer()}>
+                  <Crown size={15} /> {teamLocked ? 'Answer Locked' : 'Lock Team Answer'}
+                </button>
               )}
+
+              {teamLocked ? (
+                <div className="player-locked-card"><Check size={18} /><div><strong>Team answer locked.</strong><span>{team.name} has submitted its final answer.</span></div></div>
+              ) : state.phase !== 'question' ? (
+                <div className="player-locked-card"><Clock3 size={18} /><div><strong>Voting is closed.</strong><span>Watch the TV for the answer and standings.</span></div></div>
+              ) : null}
 
               {reveal && question.explanation && <div className="runtime-reveal-note"><strong>Answer</strong><span>{question.explanation}</span></div>}
 
-              <div className="player-score-strip"><div><span>TEAM</span><strong>{team.name}</strong></div><div><span>PLACE</span><strong>#{playerContext?.teamRank ?? '—'}</strong></div><div><span>SCORE</span><strong>{team.score.toLocaleString()}</strong></div></div>
+              <div className="player-gameplay-details">
+                {!teamLocked && state.phase === 'question' && (
+                  <div className="team-vote-card">
+                    <div className="team-vote-card__top"><span>TEAM VOTE</span><strong>{playerContext?.teamVoteSummary.reduce((sum, row) => sum + row.votes, 0) ?? 0} / {team.members.length} voted</strong></div>
+                    <div className="team-vote-bars">{question.options.map((answer) => <span className={(voteMap.get(answer.id) ?? 0) === Math.max(0, ...Array.from(voteMap.values())) && voteMap.size > 0 ? 'is-leading' : ''} key={answer.id} style={{ width: `${Math.max(4, ((voteMap.get(answer.id) ?? 0) / Math.max(1, team.members.length)) * 100)}%` }} />)}</div>
+                    <small>{team.isCaptain ? 'See how your team is leaning, then lock the final answer.' : 'Your vote is shared with the captain. The captain locks the final answer.'}</small>
+                  </div>
+                )}
+
+                {team.isCaptain && (state.phase === 'question' || state.phase === 'reveal') && (playerContext?.teamMemberVotes?.length ?? 0) > 0 && (
+                  <div className="captain-vote-detail">
+                    <div className="captain-vote-detail__heading">
+                      <div><span>TEAMMATE ANSWERS</span><strong>What your team selected</strong></div>
+                      <Crown size={15} />
+                    </div>
+                    <div className="captain-vote-detail__list">
+                      {playerContext?.teamMemberVotes.map((memberVote: TriviaTeamMemberVote) => {
+                        const selectedOption = question.options.find((option) => option.id === memberVote.optionId) ?? null;
+                        const selectedIndex = selectedOption ? question.options.findIndex((option) => option.id === selectedOption.id) : -1;
+                        return (
+                          <div className={`captain-vote-row ${selectedOption ? 'has-answer' : 'is-waiting'}`} key={memberVote.playerId}>
+                            <strong>{memberVote.nickname}</strong>
+                            {selectedOption ? (
+                              <span><b>{String.fromCharCode(65 + selectedIndex)}</b>{selectedOption.label}</span>
+                            ) : (
+                              <span className="captain-vote-waiting"><Clock3 size={11} /> Waiting</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div className="player-team-banner"><div><span>TEAM</span><strong>{team.name}</strong><small><Users size={11} /> {team.members.length} members</small></div>{team.isCaptain && <span className="captain-badge"><Crown size={11} /> Captain</span>}</div>
+
+                <div className="player-score-strip"><div><span>TEAM</span><strong>{team.name}</strong></div><div><span>PLACE</span><strong>#{playerContext?.teamRank ?? '—'}</strong></div><div><span>SCORE</span><strong>{team.score.toLocaleString()}</strong></div></div>
+              </div>
             </section>
           )}
 
