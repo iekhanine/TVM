@@ -4065,3 +4065,79 @@ body {
     justify-content: flex-start;
   }
 }
+
+/* ==========================================================
+   PLAYER FINAL SCREEN / NEXT SESSION
+   Final standings remain visible after End Game while the
+   player can enter a fresh game code for the next session.
+   ========================================================== */
+
+.player-final-screen {
+  padding-bottom: max(28px, env(safe-area-inset-bottom));
+}
+
+.player-next-game-card {
+  width: 100%;
+  display: grid;
+  gap: 14px;
+  margin-top: 20px;
+  padding: clamp(16px, 4vw, 22px);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.player-next-game-card h2 {
+  margin: 0;
+  color: #f7f9fc;
+  font-size: clamp(22px, 6vw, 30px);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+
+.player-next-game-card > p {
+  margin: 0;
+  color: #aeb9c7;
+  font-size: clamp(14px, 3.8vw, 16px);
+  line-height: 1.5;
+}
+
+.player-next-game-card label {
+  display: grid;
+  gap: 7px;
+}
+
+.player-next-game-card label > span {
+  color: #b9c3d0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.player-next-game-card input {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  box-sizing: border-box;
+  padding: 11px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  outline: none;
+  background: rgba(4, 8, 14, 0.72);
+  color: #fff;
+  font: inherit;
+  font-size: 16px;
+}
+
+.player-next-game-card input:focus {
+  border-color: rgba(83, 211, 160, 0.55);
+  box-shadow: 0 0 0 3px rgba(83, 211, 160, 0.09);
+}
+
+.player-next-game-card > small {
+  color: #8490a0;
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: center;
+}

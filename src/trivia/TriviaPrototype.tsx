@@ -1381,6 +1381,7 @@ function TriviaPlayerRuntime() {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [nextGameCode, setNextGameCode] = useState('');
 
   useEffect(() => {
     if (explicitCode.length !== 4) return;
@@ -1422,10 +1423,9 @@ function TriviaPlayerRuntime() {
     return () => window.cancelAnimationFrame(frame);
   }, [live.state?.phase, live.state?.question?.id]);
 
-  // A finished session is terminal for the mobile player. Preserve only the
-  // person's nickname for convenience; all session/team identity is thrown
-  // away so the next game always requires a fresh four-digit code and fresh
-  // team choice. The old ?code= query string is removed at the same time.
+  // When a game finishes, keep the current session visible so players can
+  // see the final standings. Preserve the nickname for the next session, but
+  // do not automatically carry the old team/player identity into another game.
   useEffect(() => {
     if (live.state?.phase !== 'finished') return;
 
@@ -1435,21 +1435,10 @@ function TriviaPlayerRuntime() {
       setPlayerName(rememberedNickname);
     }
 
-    clearStoredPlayerSession();
-    window.localStorage.removeItem(LAST_GAME_CODE_KEY);
-
-    setCode('');
-    setPlayerToken('');
-    setPlayerContext(null);
-    setTeams([]);
-    setTeamName('');
-    setSelectedAnswer(null);
-    setBusy(false);
-    setError('');
-
+    setNextGameCode('');
     playerScrollRef.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    navigate('/trivia/play', { replace: true });
-  }, [live.state?.phase, navigate, playerContext?.nickname, playerName]);
+  }, [live.state?.phase, playerContext?.nickname, playerName]);
+
 
   const refreshPlayer = useCallback(async () => {
     if (!playerToken) return;
@@ -1586,6 +1575,33 @@ function TriviaPlayerRuntime() {
     }
   }
 
+  function prepareNextGame() {
+    const newCode = normalizeCode(nextGameCode);
+    if (newCode.length !== 4) return;
+
+    const rememberedNickname = (playerContext?.nickname || playerName).trim();
+    if (rememberedNickname) {
+      storePlayerNickname(rememberedNickname);
+      setPlayerName(rememberedNickname);
+    }
+
+    clearStoredPlayerSession();
+    window.localStorage.setItem(LAST_GAME_CODE_KEY, newCode);
+
+    setCode(newCode);
+    setPlayerToken('');
+    setPlayerContext(null);
+    setTeams([]);
+    setTeamName('');
+    setSelectedAnswer(null);
+    setNextGameCode('');
+    setBusy(false);
+    setError('');
+
+    playerScrollRef.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    navigate(`/trivia/play?code=${newCode}`, { replace: true });
+  }
+
   function leaveLocalSession() {
     clearStoredPlayerSession();
     setPlayerToken('');
@@ -1707,11 +1723,61 @@ function TriviaPlayerRuntime() {
             </section>
           )}
 
-          {joined && team && state && (state.phase === 'scoreboard' || state.phase === 'finished') && (
+          {joined && team && state && state.phase === 'scoreboard' && (
             <section className="player-team-lobby">
-              <div className="team-lobby-hero"><div className="team-lobby-icon"><Trophy size={25} /></div><span className="player-kicker">{state.phase === 'finished' ? 'FINAL' : 'STANDINGS'}</span><h1>{state.phase === 'finished' ? 'Final Scores' : 'Leaderboard'}</h1><p>Your team score updates when the captain locks the final answer.</p></div>
+              <div className="team-lobby-hero"><div className="team-lobby-icon"><Trophy size={25} /></div><span className="player-kicker">STANDINGS</span><h1>Leaderboard</h1><p>Current standings for this game.</p></div>
               <LeaderboardMini leaderboard={state.leaderboard} />
-              <div className="runtime-waiting"><Wifi size={15} /><span>{state.phase === 'finished' ? 'Game complete.' : 'Waiting for the next question…'}</span></div>
+              <div className="runtime-waiting"><Wifi size={15} /><span>Waiting for the next question…</span></div>
+            </section>
+          )}
+
+          {joined && team && state && state.phase === 'finished' && (
+            <section className="player-team-lobby player-final-screen">
+              <div className="team-lobby-hero">
+                <div className="team-lobby-icon"><Trophy size={25} /></div>
+                <span className="player-kicker">FINAL</span>
+                <h1>Final Standings</h1>
+                <p>Game complete. Your final result is below.</p>
+              </div>
+
+              <LeaderboardMini leaderboard={state.leaderboard} />
+
+              <div className="player-next-game-card">
+                <span className="player-kicker">PLAY AGAIN</span>
+                <h2>Join another game.</h2>
+                <p>Your name is remembered. Enter the new game code when the host starts the next session.</p>
+
+                <label>
+                  <span>New game code</span>
+                  <input
+                    inputMode="numeric"
+                    maxLength={4}
+                    placeholder="0000"
+                    value={nextGameCode}
+                    onChange={(event) => setNextGameCode(normalizeCode(event.target.value))}
+                  />
+                </label>
+
+                <label>
+                  <span>Your name</span>
+                  <input
+                    value={playerName}
+                    maxLength={30}
+                    onChange={(event) => setPlayerName(event.target.value)}
+                  />
+                </label>
+
+                <button
+                  className="player-primary-button"
+                  type="button"
+                  disabled={nextGameCode.length !== 4 || playerName.trim().length < 2}
+                  onClick={prepareNextGame}
+                >
+                  Join New Game <ArrowRight size={16} />
+                </button>
+
+                <small>You will choose Solo or a new team after joining the new session.</small>
+              </div>
             </section>
           )}
         </div>
